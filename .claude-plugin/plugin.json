@@ -1,0 +1,20 @@
+{
+  "name": "gopilot",
+  "version": "1.0.0",
+  "description": "gopilot is your Go copilot - a skill for writing idiomatic Go code, covering design patterns, error handling, testing, concurrency, generics, and stdlib patterns up to Go 1.25.",
+  "author": {
+    "name": "Gonzalo Serrano",
+    "url": "https://github.com/gonzaloserrano"
+  },
+  "repository": "https://github.com/gonzaloserrano/gopilot",
+  "keywords": [
+    "go",
+    "golang",
+    "testing",
+    "concurrency",
+    "generics",
+    "iterators",
+    "error-handling"
+  ],
+  "skills": "./skills/"
+}

@@ -1,0 +1,38 @@
+{
+  "name": "gopilot",
+  "owner": {
+    "name": "Gonzalo Serrano",
+    "url": "https://github.com/gonzaloserrano/gopilot",
+    "email": "gonzaloserrano@users.noreply.github.com"
+  },
+  "metadata": {
+    "description": "gopilot is your Go copilot - a skill for writing idiomatic Go code",
+    "version": "1.0.0",
+    "pluginRoot": "."
+  },
+  "plugins": [
+    {
+      "name": "gopilot",
+      "source": "./",
+      "description": "gopilot is your Go copilot - a skill for writing idiomatic Go code, covering design patterns, error handling, testing, concurrency, generics, and stdlib patterns up to Go 1.25.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Gonzalo Serrano",
+        "url": "https://github.com/gonzaloserrano"
+      },
+      "homepage": "https://github.com/gonzaloserrano/gopilot",
+      "repository": "https://github.com/gonzaloserrano/gopilot",
+      "license": "MIT",
+      "keywords": [
+        "go",
+        "golang",
+        "testing",
+        "concurrency",
+        "generics",
+        "iterators",
+        "error-handling"
+      ],
+      "category": "development"
+    }
+  ]
+}
