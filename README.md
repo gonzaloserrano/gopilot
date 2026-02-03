@@ -1,7 +1,5 @@
 # gopilot
 
-**gopilot is your Go copilot**
-
 A Claude Code plugin with production-tested Go patterns covering idiomatic code style, error handling, testing, concurrency, generics, iterators, and stdlib patterns up to Go 1.25.
 
 ## Quick Start
