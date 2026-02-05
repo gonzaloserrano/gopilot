@@ -1,6 +1,6 @@
 # gopilot
 
-A Claude Code plugin with production-tested Go patterns covering idiomatic code style, error handling, testing, concurrency, generics, iterators, and stdlib patterns up to Go 1.25.
+A Claude Code plugin with production-tested Go patterns covering idiomatic code style, error handling, testing, concurrency, security, generics, iterators, and stdlib patterns up to Go 1.25.
 
 ## Quick Start
 
@@ -32,6 +32,7 @@ A Claude Code plugin with production-tested Go patterns covering idiomatic code 
 | **Iterators** | `iter.Seq`, `slices.Collect`, `maps.Keys`, range over func |
 | **Interfaces** | Consumer-side definition, compile-time checks, function types |
 | **Patterns** | Options pattern, `cmp.Or`, HTTP best practices, slog |
+| **Security** | Input validation, SQL injection, auth, sessions, TLS, CSRF, crypto |
 | **Linting** | golangci-lint configuration, recommended linters |
 
 ## Go Version Support
@@ -73,7 +74,7 @@ claude --plugin-dir .
 
 ## Contributing
 
-Contributions welcome! The skill is defined in `skills/gopilot/SKILL.md`.
+Contributions welcome! The skill is defined in `skills/gopilot/SKILL.md` with detailed security topics in `skills/gopilot/reference/`.
 
 ### Adding Patterns
 
@@ -96,3 +97,4 @@ Contributions welcome! The skill is defined in `skills/gopilot/SKILL.md`.
 - [Effective Go](https://go.dev/doc/effective_go)
 - [Go Code Review Comments](https://go.dev/wiki/CodeReviewComments)
 - [Go Proverbs](https://go-proverbs.github.io/)
+- [OWASP Go Secure Coding Practices](https://owasp.org/www-project-go-secure-coding-practices-guide/)
