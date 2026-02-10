@@ -247,6 +247,38 @@ bytes := make([]byte, 32)
 rand.Read(bytes) // Ignoring error!
 ```
 
+## Go 1.26+ Changes: Crypto Random Parameters Ignored
+
+Starting in Go 1.26, all `crypto` package functions that accepted a `rand io.Reader` parameter now **ignore** it and always use cryptographically secure randomness internally. This affects:
+
+- `crypto/ecdsa.GenerateKey`, `SignASN1`, `Sign`, `PrivateKey.Sign`
+- `crypto/ecdh.Curve.GenerateKey`
+- `crypto/ed25519.GenerateKey`
+- `crypto/rsa.GenerateKey`, `GenerateMultiPrimeKey`, `EncryptPKCS1v15`
+- `crypto/rand.Prime`
+- `crypto/dsa.GenerateKey`
+
+```go
+// Before Go 1.26: had to pass crypto/rand.Reader explicitly
+key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+
+// Go 1.26+: rand parameter is ignored, nil is fine
+key, err := ecdsa.GenerateKey(elliptic.P256(), nil)
+```
+
+This eliminates bugs where `math/rand` was accidentally passed as the random source. For deterministic testing, use `testing/cryptotest.SetGlobalRandom`. To restore old behavior: `GODEBUG=cryptocustomrand=1`.
+
+## Hybrid Public Key Encryption (Go 1.26+)
+
+The new `crypto/hpke` package implements RFC 9180 (Hybrid Public Key Encryption), including support for post-quantum hybrid KEMs:
+
+```go
+import "crypto/hpke"
+
+// HPKE provides authenticated encryption with associated data (AEAD)
+// combined with key encapsulation mechanisms (KEM)
+```
+
 ## Best Practices
 
 1. **Always use crypto/rand** for security
@@ -257,3 +289,4 @@ rand.Read(bytes) // Ignoring error!
 6. **Store securely** - clear from memory after use
 7. **Never log** - random values used as secrets
 8. **Use established libs** - uuid, gorilla/securecookie
+9. **Pass nil for rand parameter** - Go 1.26+ ignores it anyway; don't rely on custom random sources

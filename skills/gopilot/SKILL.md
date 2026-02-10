@@ -1,6 +1,6 @@
 ---
 name: gopilot
-description: Go programming language skill for writing idiomatic Go code, code review, error handling, testing, concurrency, security, and program design. Use when writing Go code, reviewing Go PRs, debugging Go tests, fixing Go errors, designing Go APIs, implementing security-sensitive code, handling user input, authentication, sessions, cryptography, or asking about Go best practices. Covers table-driven tests, error wrapping, goroutine patterns, interface design, generics, iterators, stdlib patterns up to Go 1.25, and OWASP security practices.
+description: Go programming language skill for writing idiomatic Go code, code review, error handling, testing, concurrency, security, and program design. Use when writing Go code, reviewing Go PRs, debugging Go tests, fixing Go errors, designing Go APIs, implementing security-sensitive code, handling user input, authentication, sessions, cryptography, or asking about Go best practices. Covers table-driven tests, error wrapping, goroutine patterns, interface design, generics, iterators, stdlib patterns up to Go 1.26, and OWASP security practices.
 ---
 
 # Go Engineering
@@ -22,11 +22,40 @@ description: Go programming language skill for writing idiomatic Go code, code r
     - Max 2-3 nesting levels
     - Extract helpers for long methods
 
+## Language Features (Go 1.26+)
+
+### Enhanced `new` Builtin
+`new` accepts an optional initial value expression, eliminating pointer-to-literal workarounds:
+
+```go
+// Before Go 1.26: helper function or addr-of-literal
+func ptr[T any](v T) *T { return &v }
+
+p := &Person{Age: ptr(30)}
+
+// Go 1.26+: new(expr) returns *T initialized to expr
+p := &Person{Age: new(30)}
+```
+
+### Self-Referential Generic Types
+Generic types can refer to themselves in type parameter constraints:
+
+```go
+type Adder[A Adder[A]] interface {
+    Add(A) A
+}
+
+func Sum[A Adder[A]](x, y A) A {
+    return x.Add(y)
+}
+```
+
 ## Code Style
 
 ### Formatting
 - Run `gofmt` or `goimports` before commit
 - Use `golangci-lint` for linting
+- Use `go fix` to modernize code to current idioms (Go 1.26+): applies dozens of fixers for stdlib API migrations and modern patterns
 
 ### Naming
 - MixedCaps, not underscores
@@ -44,6 +73,7 @@ description: Go programming language skill for writing idiomatic Go code, code r
 - Wrap with context: `fmt.Errorf("get config %s: %w", name, err)`
 - Sentinel errors: `var ErrNotFound = errors.New("not found")`
 - Check with `errors.Is(err, ErrNotFound)` or `errors.As(err, &target)`
+- Type-safe extraction (Go 1.26+): `errors.AsType[*NotFoundError](err)` returns `(*NotFoundError, bool)` — prefer over `errors.As` for cleaner generic code
 - Static errors: prefer `errors.New` over `fmt.Errorf` without formatting
 - Aggregate multiple: collect into slice, return `errors.Join(errs...)`
 - Error strings: lowercase, no punctuation
@@ -136,7 +166,7 @@ func TestFoo(t *testing.T) {
 ```
 
 ### Benchmarks (Go 1.24+)
-Use `for b.Loop()` instead of `for range b.N`.
+Use `for b.Loop()` instead of `for range b.N`. In Go 1.26+, `b.Loop()` no longer prevents inlining of the benchmarked code.
 
 ### Assertions
 - Use the testify library for conciseness. Use `require` for fatal assertions, `assert` for non-fatal
@@ -145,11 +175,24 @@ Use `for b.Loop()` instead of `for range b.N`.
 - Use `testdata/` folders for expected values
 - Use `embed.FS` for test data files
 
+### Test Artifacts (Go 1.26+)
+Use `-test.artifacts` flag and `t.ArtifactDir()` to write test output files (logs, screenshots, profiles) to a structured directory:
+
+```go
+func TestReport(t *testing.T) {
+    data := generateReport()
+    os.WriteFile(filepath.Join(t.ArtifactDir(), "report.json"), data, 0o644)
+}
+```
+
+Also available: `b.ArtifactDir()` and `f.ArtifactDir()` for benchmarks and fuzz tests.
+
 ### Practices
 - `t.Helper()` in helper functions
 - `t.Cleanup()` for resource cleanup
 - `t.Context()` for test-scoped context (Go 1.24+)
 - `t.Chdir()` for temp directory changes (Go 1.24+)
+- `t.ArtifactDir()` for test output files (Go 1.26+)
 - `t.Parallel()` for independent tests
 - `-race` flag always
 - Don't test stdlib; test YOUR code
@@ -223,6 +266,12 @@ func (s *Set[T]) All() iter.Seq[T] {
 
 // Collect iterator to slice
 keys := slices.Collect(maps.Keys(m))
+
+// Reflect iterators (Go 1.26+)
+for field := range reflect.TypeFor[MyStruct]().Fields() {
+    fmt.Println(field.Name)
+}
+// Also: Type.Methods(), Type.Ins(), Type.Outs(), Value.Fields(), Value.Methods()
 ```
 
 ## Interface Design
@@ -249,6 +298,7 @@ keys := slices.Collect(maps.Keys(m))
 - Clear: `clear(m)` deletes all map entries, `clear(s)` zeros slice elements (Go 1.21+)
 - Prefer `strings.Cut(s, "/")` over `strings.Split` for prefix/suffix extraction
 - Append handles nil: `var items []Item; items = append(items, newItem)`
+- Peek without advancing: `bytes.Buffer.Peek(n)` returns next n bytes (Go 1.26+)
 
 ## Common Patterns
 
@@ -267,6 +317,7 @@ Use `cmp.Or(a, b, c)` to return first non-zero value—e.g., `cmp.Or(cfg.Port, e
 - Use `http.Server{}` with explicit `ReadTimeout`/`WriteTimeout`; avoid `http.ListenAndServe`
 - Always `defer resp.Body.Close()` after checking error
 - Accept `*http.Client` as dependency for testability
+- Use typed dial methods with context (Go 1.26+): `net.Dialer.DialTCP`, `DialUDP`, `DialIP`, `DialUnix` instead of `Dial`/`DialContext` with string network names
 
 ### Directory-Scoped File Access (Go 1.24+)
 Use `os.OpenRoot("/data")` to get a handle that restricts all file operations to that directory—prevents path traversal.
@@ -331,9 +382,10 @@ Check for Makefile targets first (`make help`, or read Makefile). Common targets
 Fallback if no Makefile:
 1. `go build ./...`
 2. `go test -v -race ./...`
-3. `golangci-lint run`
-4. `gofmt -w .` or `goimports -w .`
-5. `go mod tidy`
+3. `go fix ./...` (Go 1.26+: applies modernizers for current idioms)
+4. `golangci-lint run`
+5. `gofmt -w .` or `goimports -w .`
+6. `go mod tidy`
 
 ## Security
 
@@ -423,6 +475,8 @@ _, err := rand.Read(b)
 
 Use `crypto/rand` for: session IDs, tokens, salts, nonces, password generation.
 
+Go 1.26+: all `crypto` package functions that accepted a `rand io.Reader` parameter now **ignore** it and always use cryptographically secure randomness. This eliminates a class of bugs where `math/rand` was accidentally passed. Use `testing/cryptotest.SetGlobalRandom` for deterministic testing.
+
 📖 [reference/cryptography.md](reference/cryptography.md)
 
 ### Session Management
@@ -455,6 +509,8 @@ config := &tls.Config{
 // HSTS header
 w.Header().Add("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
 ```
+
+Go 1.26+: hybrid post-quantum key exchanges (`SecP256r1MLKEM768`, `SecP384r1MLKEM1024`) are enabled by default. Disable via `Config.CurvePreferences` or `GODEBUG=tlssecpmlkem=0` if needed for compatibility.
 
 📖 [reference/tls-https.md](reference/tls-https.md)
 

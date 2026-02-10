@@ -85,6 +85,33 @@ config := &tls.Config{
 - `tls.VersionTLS12` (minimum recommended)
 - `tls.VersionTLS13` (latest)
 
+### Post-Quantum Key Exchange (Go 1.26+)
+
+Go 1.26 enables hybrid post-quantum key exchanges by default:
+- `SecP256r1MLKEM768` (X25519 + ML-KEM-768)
+- `SecP384r1MLKEM1024` (P-384 + ML-KEM-1024)
+
+These protect against "harvest now, decrypt later" attacks by quantum computers. If you encounter compatibility issues with older middleboxes:
+
+```go
+config := &tls.Config{
+    // Disable post-quantum key exchange if needed for compatibility
+    CurvePreferences: []tls.CurveID{
+        tls.X25519,
+        tls.CurveP256,
+    },
+}
+// Or set GODEBUG=tlssecpmlkem=0
+```
+
+### GODEBUG TLS Deprecations (Removed in Go 1.27)
+
+The following GODEBUG settings are deprecated in Go 1.26 and will be removed in Go 1.27:
+- `tlsunsafeekm`: will require TLS 1.3 or Extended Master Secret
+- `tlsrsakex`: legacy RSA-only key exchanges disabled permanently
+- `tls10server`: minimum TLS version becomes 1.2 for servers
+- `tls3des`: 3DES cipher suites removed from defaults
+
 ## Certificate Management
 
 ### Loading Certificates
@@ -425,3 +452,4 @@ func main() {
 - [ ] Tested with SSL Labs (A+ grade)
 - [ ] Secure cipher suites
 - [ ] No sensitive data in URLs or headers over plain HTTP
+- [ ] Post-quantum key exchange compatibility verified (Go 1.26+)
