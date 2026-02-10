@@ -47,6 +47,51 @@ description: Go programming language skill for writing idiomatic Go code, code r
 - Static errors: prefer `errors.New` over `fmt.Errorf` without formatting
 - Aggregate multiple: collect into slice, return `errors.Join(errs...)`
 - Error strings: lowercase, no punctuation
+- Avoid "failed to" prefixes - they accumulate through the stack (`"connect: %w"` not `"failed to connect: %w"`)
+
+### Error Strategy (Opaque Errors First)
+
+Prefer **opaque error handling**: treat errors as opaque values, don't inspect internals. This minimizes coupling.
+
+Three strategies in order of preference:
+
+1. **Opaque errors** (preferred): return and wrap errors without exposing type or value. Callers only check `err != nil`.
+2. **Sentinel errors** (`var ErrNotFound = errors.New(...)`): use sparingly for expected conditions callers must distinguish. They become public API.
+3. **Error types** (`type NotFoundError struct{...}`): use when callers need structured context. Also public API — avoid when opaque or sentinel suffices.
+
+### Assert Behavior, Not Type
+
+When you must inspect errors beyond `errors.Is`/`errors.As`, assert on **behavior interfaces** instead of concrete types:
+
+```go
+type temporary interface {
+    Temporary() bool
+}
+
+func IsTemporary(err error) bool {
+    te, ok := err.(temporary)
+    return ok && te.Temporary()
+}
+```
+
+### Handle Errors Once
+
+An error should be handled exactly once. Handling = logging, returning, or degrading gracefully. Never log and return — duplicates without useful context.
+
+```go
+// Bad: logs AND returns
+if err != nil {
+    log.Printf("connect failed: %v", err)
+    return fmt.Errorf("connect: %w", err)
+}
+
+// Good: wrap and return; let the top-level caller log
+if err != nil {
+    return fmt.Errorf("connect to %s: %w", addr, err)
+}
+```
+
+Wrap with context at each layer; log/handle only at the application boundary.
 
 ## Generics
 

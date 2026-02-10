@@ -98,3 +98,4 @@ Contributions welcome! The skill is defined in `skills/gopilot/SKILL.md` with de
 - [Go Code Review Comments](https://go.dev/wiki/CodeReviewComments)
 - [Go Proverbs](https://go-proverbs.github.io/)
 - [OWASP Go Secure Coding Practices](https://owasp.org/www-project-go-secure-coding-practices-guide/)
+- [Don't just check errors, handle them gracefully](https://dave.cheney.net/2016/04/27/dont-just-check-errors-handle-them-gracefully) - Opaque errors, behavior assertion, handle once
