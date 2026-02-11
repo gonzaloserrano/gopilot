@@ -1,0 +1,29 @@
+{
+  "description": "Go code quality hooks: auto-format on write, build+lint before commit",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/go-postwrite.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/go-precommit.sh",
+            "timeout": 120
+          }
+        ]
+      }
+    ]
+  }
+}
