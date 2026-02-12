@@ -177,20 +177,37 @@ Benefits: single execution per `-count`, prevents compiler optimizations away.
 - Bug fix → add regression test first
 - Concurrent code needs concurrent tests
 
-### Testing Concurrent Code (Go 1.25+)
+### Testing Concurrent Code with synctest (Go 1.25+)
+
+`testing/synctest` creates an isolated "bubble" with virtualized time. The fake clock advances automatically when all goroutines in the bubble are blocked.
+
 ```go
 import "testing/synctest"
 
-func TestConcurrent(t *testing.T) {
-    synctest.Test(t, func(ctx context.Context) {
-        // Time is virtualized; clock advances when all goroutines block
-        go worker1(ctx)
-        go worker2(ctx)
-        synctest.Wait()  // Wait for all goroutines to block
+func TestPeriodicWorker(t *testing.T) {
+    synctest.Test(t, func(t *testing.T) {
+        var count atomic.Int32
+        go func() {
+            for {
+                time.Sleep(time.Second)
+                count.Add(1)
+            }
+        }()
+
+        // Fake clock advances 5s instantly (no real waiting)
+        time.Sleep(5 * time.Second)
+        synctest.Wait() // wait for all goroutines to settle
+        require.Equal(t, int32(5), count.Load())
     })
 }
 ```
-Virtualizes time and enables deterministic testing of concurrent code.
+
+Key rules:
+- `synctest.Wait()` blocks until all bubble goroutines are idle
+- `time.Sleep`, `time.After`, `time.NewTimer`, `time.NewTicker` all use the fake clock inside the bubble
+- Goroutines spawned inside the bubble belong to it; goroutines outside are unaffected
+- Blocking on I/O or syscalls does NOT advance the clock — only channel ops, sleeps, and sync primitives do
+- Prefer `synctest.Test` over manual `timeNow` mocking for new code
 
 ## Concurrency
 
