@@ -1,6 +1,6 @@
 # gopilot
 
-A Claude Code plugin with production-tested Go patterns covering idiomatic code style, error handling, testing, concurrency, security, generics, iterators, and stdlib patterns up to Go 1.25.
+A Claude Code plugin with production-tested Go patterns covering idiomatic code style, error handling, testing, concurrency, security, generics, iterators, and stdlib patterns up to Go 1.26.
 
 ## Quick Start
 
@@ -37,9 +37,10 @@ A Claude Code plugin with production-tested Go patterns covering idiomatic code 
 
 ## Go Version Support
 
-Covers features up to **Go 1.25**, including:
+Covers features up to **Go 1.26**, including:
 
-- Go 1.25: `testing/synctest`, `wg.Go()`
+- Go 1.26: `errors.AsType[T]()`, `new(expr)`, `t.ArtifactDir()`, `go fix`, goroutine leak profile
+- Go 1.25: `testing/synctest`, `wg.Go()`, `http.CrossOriginProtection`
 - Go 1.24: `t.Context()`, `t.Chdir()`, `os.OpenRoot()`, `runtime.AddCleanup`, generic type aliases, `b.Loop()`
 - Go 1.23: Iterators (`iter.Seq`), `slices.Collect`, `maps.Keys`
 - Go 1.22: `cmp.Or`, range over int, loop variable fix

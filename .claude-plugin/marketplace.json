@@ -14,7 +14,7 @@
     {
       "name": "gopilot",
       "source": "./",
-      "description": "gopilot is your Go copilot - a skill for writing idiomatic Go code, covering design patterns, error handling, testing, concurrency, generics, and stdlib patterns up to Go 1.25.",
+      "description": "gopilot is your Go copilot - a skill for writing idiomatic Go code, covering design patterns, error handling, testing, concurrency, generics, and stdlib patterns up to Go 1.26.",
       "version": "1.0.5",
       "author": {
         "name": "Gonzalo Serrano",
