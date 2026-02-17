@@ -48,12 +48,12 @@ A skill is a markdown file that gives Claude domain expertise. You *could* drop 
 
 Covers features up to **Go 1.26**, including:
 
-- Go 1.26: `errors.AsType[T]()`, `new(expr)`, `t.ArtifactDir()`, `go fix`, goroutine leak profile
-- Go 1.25: `testing/synctest`, `wg.Go()`, `http.CrossOriginProtection`
-- Go 1.24: `t.Context()`, `t.Chdir()`, `os.OpenRoot()`, `runtime.AddCleanup`, generic type aliases, `b.Loop()`
-- Go 1.23: Iterators (`iter.Seq`), `slices.Collect`, `maps.Keys`
-- Go 1.22: `cmp.Or`, range over int, loop variable fix
-- Go 1.21: `clear()`, `slices`/`maps` packages
+- [Go 1.26](https://go.dev/doc/go1.26): `errors.AsType[T]()`, `new(expr)`, `t.ArtifactDir()`, `go fix`, goroutine leak profile
+- [Go 1.25](https://go.dev/doc/go1.25): `testing/synctest`, `wg.Go()`, `http.CrossOriginProtection`
+- [Go 1.24](https://go.dev/doc/go1.24): `t.Context()`, `t.Chdir()`, `os.OpenRoot()`, `runtime.AddCleanup`, generic type aliases, `b.Loop()`
+- [Go 1.23](https://go.dev/doc/go1.23): Iterators (`iter.Seq`), `slices.Collect`, `maps.Keys`
+- [Go 1.22](https://go.dev/doc/go1.22): `cmp.Or`, range over int, loop variable fix
+- [Go 1.21](https://go.dev/doc/go1.21): `clear()`, `slices`/`maps` packages
 
 ## Plugin Management
 
