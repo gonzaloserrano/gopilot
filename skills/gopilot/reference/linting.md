@@ -72,7 +72,7 @@ golangci-lint run --timeout 5m # Increase timeout for large codebases
 - **`hostport`** (Go 1.25+): catches `host + ":" + port` string concatenation, suggests `net.JoinHostPort(host, port)` which handles IPv6 correctly
 - **`copylocks`**: detects copying of `sync.Mutex` and other lock types
 - **`printf`**: validates format string arguments
-- **`shadow`**: detects shadowed variables — **not** a built-in `go vet` analyzer; requires the standalone `shadow` linter in golangci-lint or invoking `go vet -vettool` with `golang.org/x/tools/go/analysis/passes/shadow`
+- **`shadow`**: detects shadowed variables — disabled by default (even in `go vet`) due to false positives; included by golangci-lint's govet with `enable-all: true`, or use `go vet -vettool` with `golang.org/x/tools/go/analysis/passes/shadow`. Consider disabling if too noisy
 - **`unusedresult`**: catches unused results of certain function calls
 - **`httpmux`**: validates HTTP handler pattern syntax (Go 1.22+)
 
