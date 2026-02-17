@@ -474,38 +474,9 @@ Advantages over `SetFinalizer`: multiple cleanups per object, works with interio
 - Timer/Ticker channels: capacity 0 (Go 1.23+); previously capacity 1
 - `init()` is an anti-pattern; prefer explicit initialization
 
-## Linting (golangci-lint)
+## Linting & Pre-Commit
 
-```yaml
-# .golangci.yml
-linters:
-  enable:
-    - errcheck      # Unchecked errors
-    - govet         # Suspicious constructs
-    - staticcheck   # Static analysis
-    - unused        # Unused code
-    - gosimple      # Simplifications
-    - ineffassign   # Ineffectual assignments
-    - typecheck     # Type checking
-    - gocritic      # Opinionated checks
-    - gofumpt       # Stricter gofmt
-    - misspell      # Spelling
-    - nolintlint    # Malformed //nolint directives
-    - wrapcheck     # Errors from external packages wrapped
-    - errorlint     # errors.Is/As usage
-
-linters-settings:
-  govet:
-    enable-all: true  # includes waitgroup (misplaced wg.Add) and hostport (use net.JoinHostPort) analyzers (Go 1.25+)
-  gocritic:
-    enabled-tags: [diagnostic, style, performance]
-```
-
-```bash
-golangci-lint run              # Lint current module
-golangci-lint run --fix        # Auto-fix where possible
-golangci-lint run --timeout 5m # Increase timeout for large codebases
-```
+See [Linting & Code Quality Tools](reference/linting.md) for golangci-lint config, govet analyzers, `go fix`, formatting, security scanners, and pre-commit checklist.
 
 ## Module & Tool Management
 
@@ -517,21 +488,6 @@ go get -tool golang.org/x/tools/cmd/stringer@latest   # adds tool directive
 go get -tool github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 go tool stringer -type=Color                           # run tracked tool
 ```
-
-### Pre-Commit
-
-Check for Makefile targets first (`make help`, or read Makefile). Common targets:
-- `make lint` or `make check`
-- `make test`
-- `make build`
-
-Fallback if no Makefile:
-1. `go build ./...`
-2. `go test -v -race ./...`
-3. `golangci-lint run`
-4. `go fix ./...` (Go 1.26+: modernizes code to latest idioms)
-5. `gofmt -w .` or `goimports -w .`
-6. `go mod tidy`
 
 ## Performance
 
@@ -592,8 +548,4 @@ Based on OWASP Go Secure Coding Practices. Read the linked reference for each to
 
 ### Security Tools
 
-| Tool | Purpose | Command |
-|------|---------|---------|
-| gosec | Security scanner | `gosec ./...` |
-| govulncheck | Vulnerability scanner | `govulncheck ./...` |
-| trivy | Container/dep scanner | `trivy fs .` |
+See [Linting & Code Quality Tools](reference/linting.md) for `gosec`, `govulncheck`, and `trivy` commands.
