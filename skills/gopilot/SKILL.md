@@ -496,7 +496,7 @@ linters:
 
 linters-settings:
   govet:
-    enable-all: true
+    enable-all: true  # includes waitgroup (misplaced wg.Add) and hostport (use net.JoinHostPort) analyzers (Go 1.25+)
   gocritic:
     enabled-tags: [diagnostic, style, performance]
 ```
@@ -506,10 +506,6 @@ golangci-lint run              # Lint current module
 golangci-lint run --fix        # Auto-fix where possible
 golangci-lint run --timeout 5m # Increase timeout for large codebases
 ```
-
-### Vet Analyzers (Go 1.25+)
-- `waitgroup`: catches `wg.Add(1)` placed inside the goroutine instead of before `go` — a common race condition
-- `hostport`: catches `host + ":" + port` string concatenation, suggests `net.JoinHostPort(host, port)` which handles IPv6 correctly
 
 ## Module & Tool Management
 
