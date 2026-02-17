@@ -8,7 +8,7 @@ description: Go programming language skill for writing idiomatic Go code, code r
 ## Design Guidelines
 
 - Keep things simple.
-   - Prefer stateless, pure functions over stateful structs with methods if no state is needed to solve the problem. 
+   - Prefer stateless, pure functions over stateful structs with methods if no state is needed to solve the problem.
    - Prefer synchronous code to concurrent code, an obvious concurrency pattern applies.
    - Prefer simple APIs and small interfaces.
    - Make the zero value useful: `bytes.Buffer` and `sync.Mutex` work without init. When zero values compose, there's less API.
@@ -35,6 +35,7 @@ description: Go programming language skill for writing idiomatic Go code, code r
 - Wrap with context: `fmt.Errorf("get config %s: %w", name, err)`
 - Sentinel errors: `var ErrNotFound = errors.New("not found")`
 - Check with `errors.Is(err, ErrNotFound)` or `errors.As(err, &target)` (or generic `errors.AsType[T](err)` Go 1.26+)
+- Standard sentinel for unsupported operations: `errors.ErrUnsupported` (Go 1.21+)
 - Static errors: prefer `errors.New` over `fmt.Errorf` without formatting
 - Join multiple errors: `err := errors.Join(err1, err2, err3)` (Go 1.20+)
 - Error strings: lowercase, no punctuation
@@ -102,10 +103,11 @@ if cause := context.Cause(ctx); cause != nil {
 ## Generics
 
 - Type parameters: `func Min[T cmp.Ordered](a, b T) T`
-- Use `comparable` for map keys, `cmp.Ordered` for sortable types
+- Use `comparable` for map keys, `cmp.Ordered` for sortable types (Go 1.21+); `cmp.Compare()`, `cmp.Less()` for comparisons
 - Custom constraints: `type Number interface { ~int | ~int64 | ~float64 }`
 - Generic type alias (Go 1.24+): `type Set[T comparable] = map[T]struct{}`
 - Self-referential constraints (Go 1.26+): `type Adder[A Adder[A]] interface { Add(A) A }`
+- `reflect.TypeFor[T]()` instead of `reflect.TypeOf((*T)(nil)).Elem()` (Go 1.22+)
 - Prefer concrete types when generics add no value
 - Use `any` sparingly; prefer specific constraints
 
@@ -171,6 +173,7 @@ Benefits: single execution per `-count`, prevents compiler optimizations away.
 - `t.Context()` for test-scoped context (Go 1.24+)
 - `t.Chdir()` for temp directory changes (Go 1.24+)
 - `t.ArtifactDir()` for test output files (Go 1.26+)
+- `t.Attr(key, value)` for structured test metadata (Go 1.25+)
 - `t.Parallel()` for independent tests
 - `-race` flag always
 - Don't test stdlib; test YOUR code
@@ -262,19 +265,22 @@ for i := range 10 {
 ```
 
 ### Range Over Functions (Go 1.23+)
+
+Iterator types: `iter.Seq[V]` yields single values, `iter.Seq2[K, V]` yields key-value pairs (Go 1.23+).
+
 ```go
-// String iterators
+// String iterators (Go 1.24+)
 for line := range strings.Lines(s) { }
 for part := range strings.SplitSeq(s, sep) { }
 for field := range strings.FieldsSeq(s) { }
 
-// Slice iterators
+// Slice iterators (Go 1.23+, package since Go 1.21+)
 for i, v := range slices.All(items) { }
 for v := range slices.Values(items) { }
 for v := range slices.Backward(items) { }
 for chunk := range slices.Chunk(items, 3) { }
 
-// Map iterators
+// Map iterators (Go 1.23+, package since Go 1.21+)
 for k, v := range maps.All(m) { }
 for k := range maps.Keys(m) { }
 for v := range maps.Values(m) { }
@@ -307,7 +313,8 @@ func (s *Set[T]) All() iter.Seq[T] {
 
 - Pre-allocate when size known: `make([]User, 0, len(ids))`
 - Nil vs empty: `var t []string` (nil, JSON null) vs `t := []string{}` (non-nil, JSON `[]`)
-- Copy at boundaries with `slices.Clone(items)` to prevent external mutations
+- Copy at boundaries with `slices.Clone(items)` (Go 1.21+) to prevent external mutations
+- Concatenate slices: `slices.Concat(a, b, c)` (Go 1.22+)
 - Prefer `strings.Cut(s, "/")` over `strings.Split` for prefix/suffix extraction
 - Append handles nil: `var items []Item; items = append(items, newItem)`
 
@@ -323,6 +330,58 @@ Use `cmp.Or(a, b, c)` to return first non-zero value—e.g., `cmp.Or(cfg.Port, e
 - First parameter: `func Foo(ctx context.Context, ...)`
 - Don't store in structs
 - Use for cancellation, deadlines, request-scoped values only
+- `context.WithoutCancel(ctx)` — derive a context that is never canceled, for background work that outlives a request (Go 1.21+)
+- `context.AfterFunc(ctx, fn)` — register cleanup to run when context is done; replaces manual goroutine+select (Go 1.21+)
+
+### Random Numbers (Go 1.22+)
+
+Use `math/rand/v2` for new code (not `math/rand`):
+```go
+n := rand.IntN(100)         // [0, 100)
+x := rand.N[time.Duration](time.Second)  // generic; works with any integer type
+f := rand.Float64()
+```
+Default source is ChaCha8 (cryptographically secure). For security-sensitive use, still prefer `crypto/rand`.
+
+### JSON Struct Tags (Go 1.24+)
+
+`omitzero` omits a field when it is the zero value. Clearer than `omitempty` especially for `time.Time`:
+```go
+type Event struct {
+    Name    string    `json:"name"`
+    StartAt time.Time `json:"start_at,omitzero"` // omitted when zero, not "0001-01-01T..."
+    Tags    []string  `json:"tags,omitempty"`     // omitted when nil or empty
+}
+```
+`omitzero` uses `IsZero() bool` if available; otherwise compares to the language zero value.
+
+### Generic Nullable (Go 1.22+)
+
+`database/sql.Null[T]` replaces `sql.NullString`, `sql.NullInt64`, etc.:
+```go
+var name sql.Null[string]
+var age  sql.Null[int]
+```
+
+### Value Interning (Go 1.23+)
+
+`unique.Make[T](v)` returns a `Handle[T]` that deduplicates equal values in memory:
+```go
+h1 := unique.Make("frequently-repeated")
+h2 := unique.Make("frequently-repeated")
+// h1 == h2, single allocation backing both
+```
+
+### Weak Pointers (Go 1.24+)
+
+`weak.Pointer[T]` holds a reference that doesn't prevent garbage collection:
+```go
+p := weak.Make(&obj)
+if v := p.Value(); v != nil {
+    // obj still alive, use *v
+}
+```
+Use for caches and canonicalization maps where entries should be evicted when no longer referenced.
 
 ### HTTP Best Practices
 - Use `http.Server{}` with explicit `ReadTimeout`/`WriteTimeout`; avoid `http.ListenAndServe`
@@ -342,6 +401,17 @@ func getHandler(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
+### Reverse Proxy (Go 1.26+)
+Use `Rewrite` instead of the deprecated `Director`:
+```go
+proxy := &httputil.ReverseProxy{
+    Rewrite: func(r *httputil.ProxyRequest) {
+        r.SetURL(target)
+        r.SetXForwarded()
+    },
+}
+```
+
 ### CSRF Protection (Go 1.25+)
 ```go
 import "net/http"
@@ -356,9 +426,17 @@ root, err := os.OpenRoot("/var/data")
 if err != nil {
     return err
 }
+defer root.Close()
 f, err := root.Open("file.txt")  // Can't escape /var/data
 ```
-Prevents path traversal attacks; works like a chroot.
+Prevents path traversal attacks; works like a chroot. Full sandboxed filesystem API (Go 1.25+):
+```go
+data, err := root.ReadFile("config.json")
+err = root.WriteFile("output.txt", data, 0o644)
+err = root.MkdirAll("a/b/c", 0o755)
+err = root.Rename("old.txt", "new.txt")
+err = root.RemoveAll("temp")
+```
 
 ### Cleanup Functions (Go 1.24+)
 ```go
@@ -366,11 +444,13 @@ runtime.AddCleanup(obj, func() { cleanup() })
 ```
 Advantages over `SetFinalizer`: multiple cleanups per object, works with interior pointers, no cycle leaks, faster.
 
-## Structured Logging (log/slog)
+## Structured Logging (log/slog, Go 1.21+)
 
 - Use `slog.Info("msg", "key", value, "key2", value2)` with key-value pairs
 - Add persistent attributes: `logger := slog.With("service", "api")`
 - JSON output: `slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))`
+- Discard handler for tests: `slog.New(slog.DiscardHandler)` (Go 1.24+)
+- Multi-handler composition: `slog.NewMultiHandler(jsonHandler, textHandler)` (Go 1.26+)
 
 ## Common Gotchas
 
@@ -386,6 +466,7 @@ Advantages over `SetFinalizer`: multiple cleanups per object, works with interio
   if err != nil { return }
   name := f.Name()
   ```
+- `panic(nil)` now causes `*runtime.PanicNilError` (Go 1.21+); `recover()` never returns nil
 - `time.Ticker`: always call `Stop()` to prevent leaks
 - Slices hold refs to backing arrays (can retain large memory)
 - `nil` interface vs `nil` concrete: `var err error = (*MyError)(nil)` → `err != nil` is true
@@ -426,7 +507,22 @@ golangci-lint run --fix        # Auto-fix where possible
 golangci-lint run --timeout 5m # Increase timeout for large codebases
 ```
 
-## Pre-Commit
+### Vet Analyzers (Go 1.25+)
+- `waitgroup`: catches `wg.Add(1)` placed inside the goroutine instead of before `go` — a common race condition
+- `hostport`: catches `host + ":" + port` string concatenation, suggests `net.JoinHostPort(host, port)` which handles IPv6 correctly
+
+## Module & Tool Management
+
+### Tool Dependencies (Go 1.24+)
+
+Track executable tool dependencies in `go.mod` instead of the old `tools.go` blank-import hack:
+```bash
+go get -tool golang.org/x/tools/cmd/stringer@latest   # adds tool directive
+go get -tool github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+go tool stringer -type=Color                           # run tracked tool
+```
+
+### Pre-Commit
 
 Check for Makefile targets first (`make help`, or read Makefile). Common targets:
 - `make lint` or `make check`
@@ -443,7 +539,7 @@ Fallback if no Makefile:
 
 ## Performance
 
-### Profile-Guided Optimization (PGO)
+### Profile-Guided Optimization (PGO, Go 1.21+)
 ```bash
 # Collect profile
 go test -cpuprofile=default.pgo
@@ -468,12 +564,13 @@ Based on OWASP Go Secure Coding Practices. Read the linked reference for each to
 - [ ] File paths validated against traversal (`os.OpenRoot` Go 1.24+)
 
 **Auth/Sessions:**
-- [ ] Passwords hashed with bcrypt/Argon2/PBKDF2
+- [ ] Passwords hashed with bcrypt/Argon2/PBKDF2 (`crypto/pbkdf2` in stdlib Go 1.24+)
 - [ ] `crypto/rand` for all tokens/session IDs (`crypto/rand.Text()` Go 1.24+)
 - [ ] Secure cookie flags (HttpOnly, Secure, SameSite)
 - [ ] Session expiration enforced
 
-**Communication:**
+**Encryption:**
+- [ ] Use `crypto/cipher.NewGCMWithRandomNonce()` for symmetric encryption — auto-generates nonce, prevents reuse (Go 1.24+)
 - [ ] HTTPS/TLS everywhere, TLS 1.2+ only (post-quantum ML-KEM default Go 1.24+)
 - [ ] HSTS header set
 - [ ] `InsecureSkipVerify = false`
