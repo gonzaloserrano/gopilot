@@ -5,7 +5,7 @@
 When working on a Go project, check which of the following are already in place. For anything missing, suggest adding it to the user:
 
 1. **golangci-lint config** — look for `.golangci.yml` (or `.golangci.yaml`, `.golangci.toml`, `.golangci.json`) at the repo root. If absent, suggest creating one with the recommended config below.
-2. **golangci-lint binary** — run `golangci-lint version`. If not found, suggest installing it as a tool dependency (`go get -tool`) or via the project Makefile.
+2. **golangci-lint binary** — run `golangci-lint version`. If not found, suggest installing via binary release (e.g. `curl -sSfL https://golangci-lint.run/install.sh | sh`, Homebrew, or the project Makefile). Note: `go get -tool` works but is [not officially recommended](https://golangci-lint.run/docs/welcome/install/local/) due to potential dependency conflicts.
 3. **govet `enable-all`** — if a golangci-lint config exists, check whether `govet.enable-all` is set to `true`. If not, suggest enabling it to get `waitgroup`, `hostport`, and other valuable analyzers.
 4. **Missing recommended linters** — compare the enabled linters against the recommended list below. Suggest enabling any that are absent, explaining what each catches.
 5. **Makefile lint target** — check if a `make lint` (or `make check`) target exists. If not, and the project uses a Makefile, suggest adding one.
@@ -72,7 +72,7 @@ golangci-lint run --timeout 5m # Increase timeout for large codebases
 - **`hostport`** (Go 1.25+): catches `host + ":" + port` string concatenation, suggests `net.JoinHostPort(host, port)` which handles IPv6 correctly
 - **`copylocks`**: detects copying of `sync.Mutex` and other lock types
 - **`printf`**: validates format string arguments
-- **`shadow`**: detects shadowed variables
+- **`shadow`**: detects shadowed variables — **not** a built-in `go vet` analyzer; requires the standalone `shadow` linter in golangci-lint or invoking `go vet -vettool` with `golang.org/x/tools/go/analysis/passes/shadow`
 - **`unusedresult`**: catches unused results of certain function calls
 - **`httpmux`**: validates HTTP handler pattern syntax (Go 1.22+)
 
