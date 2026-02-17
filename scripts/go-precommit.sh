@@ -9,6 +9,22 @@ if [[ ! "$command" =~ ^git\ commit ]]; then
   exit 0
 fi
 
+# Skip if not a Go project (search up to git root)
+find_go_mod() {
+  local dir="$PWD"
+  local root
+  root=$(git rev-parse --show-toplevel 2>/dev/null) || return 1
+  while [[ "$dir" == "$root"* ]]; do
+    [[ -f "$dir/go.mod" ]] && return 0
+    [[ "$dir" == "$root" ]] && return 1
+    dir=$(dirname "$dir")
+  done
+  return 1
+}
+if ! find_go_mod; then
+  exit 0
+fi
+
 errors=""
 
 # Build check
