@@ -1,5 +1,7 @@
 # gopilot
 
+[![skillaudit](https://img.shields.io/badge/skillaudit-Clean-22c55e)](https://skillaudit.sh/gonzaloserrano/gopilot)
+
 A Claude Code plugin with production-tested Go patterns covering idiomatic code style, error handling, testing, concurrency, security, generics, iterators, and stdlib patterns up to Go 1.26.
 
 ## Quick Start
