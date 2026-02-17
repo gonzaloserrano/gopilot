@@ -34,26 +34,27 @@ A skill is a markdown file that gives Claude domain expertise. You *could* drop 
 |-------|----------|
 | **Design** | Simplicity, pure functions, zero values, guard clauses, small interfaces |
 | **Code Style** | gofmt, golangci-lint, naming conventions, package design |
-| **Error Handling** | Wrapping, sentinel errors, `errors.Is`/`As`, `errors.Join` |
-| **Generics** | Type parameters, constraints, `comparable`, `cmp.Ordered` |
-| **Testing** | Table-driven tests, testify, `t.Parallel()`, `t.Cleanup()`, benchmarks |
-| **Concurrency** | Channels, mutexes, `errgroup`, `sync.Once`, context cancellation |
-| **Iterators** | `iter.Seq`, `slices.Collect`, `maps.Keys`, range over func |
+| **Error Handling** | Wrapping, sentinel errors, `errors.Is`/`As`/`AsType`, `errors.Join`, `ErrUnsupported` |
+| **Generics** | Type parameters, constraints, `cmp.Ordered`, type aliases, `reflect.TypeFor` |
+| **Testing** | Table-driven tests, testify, `t.Parallel()`, `t.Cleanup()`, `t.Attr()`, benchmarks, `synctest` |
+| **Concurrency** | Channels, mutexes, `errgroup`, `sync.Once`, `wg.Go()`, context cancellation |
+| **Iterators** | `iter.Seq`/`Seq2`, `slices.Collect`, `maps.Keys`, range over func/int, `unique` |
 | **Interfaces** | Consumer-side definition, compile-time checks, function types |
-| **Patterns** | Options pattern, `cmp.Or`, HTTP best practices, slog |
-| **Security** | Input validation, SQL injection, auth, sessions, TLS, CSRF, crypto |
-| **Linting** | golangci-lint configuration, recommended linters |
+| **Patterns** | Options, `cmp.Or`, `omitzero`, `rand/v2`, `sql.Null[T]`, `weak.Pointer`, HTTP routing, slog |
+| **Modules** | `tool` directives in go.mod, pre-commit, PGO |
+| **Security** | Input validation, SQL injection, auth, sessions, TLS, CSRF, `NewGCMWithRandomNonce`, `os.Root` |
+| **Linting** | golangci-lint config, vet `waitgroup`/`hostport` analyzers |
 
 ## Go Version Support
 
 Covers features up to **Go 1.26**, including:
 
-- [Go 1.26](https://go.dev/doc/go1.26): `errors.AsType[T]()`, `new(expr)`, `t.ArtifactDir()`, `go fix`, goroutine leak profile
-- [Go 1.25](https://go.dev/doc/go1.25): `testing/synctest`, `wg.Go()`, `http.CrossOriginProtection`
-- [Go 1.24](https://go.dev/doc/go1.24): `t.Context()`, `t.Chdir()`, `os.OpenRoot()`, `runtime.AddCleanup`, generic type aliases, `b.Loop()`
-- [Go 1.23](https://go.dev/doc/go1.23): Iterators (`iter.Seq`), `slices.Collect`, `maps.Keys`
-- [Go 1.22](https://go.dev/doc/go1.22): `cmp.Or`, range over int, loop variable fix
-- [Go 1.21](https://go.dev/doc/go1.21): `clear()`, `slices`/`maps` packages
+- [Go 1.26](https://go.dev/doc/go1.26): `errors.AsType[T]()`, `new(expr)`, `t.ArtifactDir()`, `go fix`, `slog.NewMultiHandler`, `ReverseProxy.Rewrite`
+- [Go 1.25](https://go.dev/doc/go1.25): `testing/synctest`, `wg.Go()`, `http.CrossOriginProtection`, `os.Root` full API, `t.Attr()`, vet analyzers
+- [Go 1.24](https://go.dev/doc/go1.24): `omitzero`, `tool` directives, `os.OpenRoot`, `weak.Pointer`, `NewGCMWithRandomNonce`, `b.Loop()`, `t.Context()`
+- [Go 1.23](https://go.dev/doc/go1.23): `iter.Seq`/`Seq2`, iterator functions for slices/maps/strings, `unique` package
+- [Go 1.22](https://go.dev/doc/go1.22): `math/rand/v2`, `cmp.Or`, `sql.Null[T]`, `slices.Concat`, range over int, loop variable fix
+- [Go 1.21](https://go.dev/doc/go1.21): `log/slog`, `slices`/`maps`/`cmp` packages, `context.WithoutCancel`/`AfterFunc`, `errors.ErrUnsupported`
 
 ## Plugin Management
 
