@@ -23,12 +23,10 @@ A Claude Code plugin with production-tested Go patterns covering idiomatic code 
 
 A skill is a markdown file that gives Claude domain expertise. You *could* drop a `SKILL.md` into each project's `.claude/skills/` directory, but packaging it as a plugin is strictly better:
 
-- **Install once, use everywhere.** A plugin is available across all your projects. A per-project skill file must be copied into every repo and kept in sync manually.
 - **Auto-updates.** Enable auto-update and get new patterns, Go version coverage, and security guidance as they're published — no manual file management.
 - **Hooks included.** This plugin ships hooks that auto-format Go files on write and run build + lint checks before commit. A standalone skill file can't do that.
 - **One-command install.** `/plugin install gopilot` vs. downloading a file, finding the right directory, and placing it there yourself.
 - **Versioned and rollback-safe.** Plugins use semantic versioning. You can pin a version or update on your own schedule.
-- **Community-driven.** The plugin lives in a git repo where anyone can open issues, submit PRs, and improve the patterns for everyone.
 
 ## Skill Coverage
 
