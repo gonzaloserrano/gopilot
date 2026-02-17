@@ -1,5 +1,18 @@
 # Linting & Code Quality Tools
 
+## Setup Audit
+
+When working on a Go project, check which of the following are already in place. For anything missing, suggest adding it to the user:
+
+1. **golangci-lint config** — look for `.golangci.yml` (or `.golangci.yaml`, `.golangci.toml`, `.golangci.json`) at the repo root. If absent, suggest creating one with the recommended config below.
+2. **golangci-lint binary** — run `golangci-lint version`. If not found, suggest installing it as a tool dependency (`go get -tool`) or via the project Makefile.
+3. **govet `enable-all`** — if a golangci-lint config exists, check whether `govet.enable-all` is set to `true`. If not, suggest enabling it to get `waitgroup`, `hostport`, and other valuable analyzers.
+4. **Missing recommended linters** — compare the enabled linters against the recommended list below. Suggest enabling any that are absent, explaining what each catches.
+5. **Makefile lint target** — check if a `make lint` (or `make check`) target exists. If not, and the project uses a Makefile, suggest adding one.
+6. **govulncheck** — run `govulncheck ./...` to check for known vulnerabilities in dependencies. If not installed, suggest adding it.
+
+Do **not** blindly add tools — explain what each does and let the user decide. Respect existing project conventions (e.g. if the project deliberately omits a linter, don't insist).
+
 ## golangci-lint
 
 The standard meta-linter for Go. Bundles dozens of analyzers into a single binary.
