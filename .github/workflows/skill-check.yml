@@ -15,4 +15,4 @@ jobs:
       - name: Install and run skill-check
         run: |
           npm install -g skill-check@latest
-          skill-check --format github .
+          skill-check check --format github
