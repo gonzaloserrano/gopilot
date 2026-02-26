@@ -35,7 +35,7 @@ description: Go programming language skill for writing idiomatic Go code, code r
 - Errors are values. Design APIs around that.
 - Wrap with context: `fmt.Errorf("get config %s: %w", name, err)`
 - Sentinel errors: `var ErrNotFound = errors.New("not found")`
-- Check with `errors.Is(err, ErrNotFound)` or `errors.As(err, &target)` (or generic `errors.AsType[T](err)` Go 1.26+)
+- Check with `errors.Is(err, ErrNotFound)` or `errors.As(err, &target)`, or use generic `errors.AsType[T]` (Go 1.26+)
 - Static errors: prefer `errors.New` over `fmt.Errorf` without formatting
 - Join multiple errors: `err := errors.Join(err1, err2, err3)` (Go 1.20+)
 - Error strings: lowercase, no punctuation
@@ -102,7 +102,7 @@ if cause := context.Cause(ctx); cause != nil {
 
 ## Generics
 
-- Type parameters: `func Min[T cmp.Ordered](a, b T) T`
+- Type parameters: `func Min[T cmp.Ordered] (a, b T) T`
 - Use `comparable` for map keys, `cmp.Ordered` for sortable types
 - Custom constraints: `type Number interface { ~int | ~int64 | ~float64 }`
 - Generic type alias (Go 1.24+): `type Set[T comparable] = map[T]struct{}`
