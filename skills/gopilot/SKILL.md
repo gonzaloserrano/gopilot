@@ -28,6 +28,7 @@ description: Go programming language skill for writing idiomatic Go code, code r
 - Getters: `Foo()` not `GetFoo()`
 - Receiver: short (1-2 chars), consistent across type methods
 - `Must` prefix for panicking functions
+- Enums: use `iota + 1` to start at one, distinguishing intentional values from zero default
 
 ## Error Handling
 
@@ -114,10 +115,6 @@ if cause := context.Cause(ctx); cause != nil {
 - `min(a, b, c)` and `max(a, b, c)` - compute smallest/largest values (Go 1.21+)
 - `clear(m)` - delete all map entries; `clear(s)` - zero all slice elements (Go 1.21+)
 - `new(expr)` - allocate and initialize with value (Go 1.26+): `ptr := new(computeValue())`
-
-## Enums
-
-Use `iota + 1` to start enums at one, distinguishing intentional values from zero default.
 
 ## Testing
 
