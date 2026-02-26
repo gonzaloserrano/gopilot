@@ -1,6 +1,6 @@
 ---
 name: gopilot
-description: Go programming language skill for writing idiomatic Go code, code review, error handling, testing, concurrency, security, and program design. Use when writing Go code, reviewing Go PRs, debugging Go tests, fixing Go errors, designing Go APIs, implementing security-sensitive code, handling user input, authentication, sessions, cryptography, or asking about Go best practices. Covers table-driven tests, error wrapping, goroutine patterns, interface design, generics, iterators, stdlib patterns up to Go 1.26, and OWASP security practices.
+description: Go programming language skill for writing idiomatic Go code, code review, error handling, testing, concurrency, security, and program design. Use when writing Go code, reviewing Go PRs, debugging Go tests, fixing Go errors, designing Go APIs, implementing security-sensitive code, handling user input, authentication, sessions, cryptography, or asking about Go best practices. Covers table-driven tests, error wrapping, goroutine patterns, interface design, generics, iterators, stdlib patterns up to Go 1.26, and OWASP security practices. Don't use for Python, Rust, JavaScript, TypeScript, Java, C/C++, or other non-Go languages.
 ---
 
 # Go Engineering
@@ -376,15 +376,10 @@ Advantages over `SetFinalizer`: multiple cleanups per object, works with interio
 
 - **Check errors immediately** (Go 1.25 fixed compiler bug): always check `err != nil` before using any returned values
   ```go
-  // WRONG: could execute f.Name() before err check in Go 1.21-1.24
-  f, err := os.Open("file")
-  name := f.Name()
-  if err != nil { return }
-
-  // CORRECT: check immediately
-  f, err := os.Open("file")
-  if err != nil { return }
-  name := f.Name()
+  // WRONG                          // CORRECT
+  f, err := os.Open("file")        f, err := os.Open("file")
+  name := f.Name()                  if err != nil { return }
+  if err != nil { return }          name := f.Name()
   ```
 - `time.Ticker`: always call `Stop()` to prevent leaks
 - Slices hold refs to backing arrays (can retain large memory)
@@ -399,19 +394,19 @@ Advantages over `SetFinalizer`: multiple cleanups per object, works with interio
 # .golangci.yml
 linters:
   enable:
-    - errcheck      # Unchecked errors
-    - govet         # Suspicious constructs
-    - staticcheck   # Static analysis
-    - unused        # Unused code
-    - gosimple      # Simplifications
-    - ineffassign   # Ineffectual assignments
-    - typecheck     # Type checking
-    - gocritic      # Opinionated checks
-    - gofumpt       # Stricter gofmt
-    - misspell      # Spelling
-    - nolintlint    # Malformed //nolint directives
-    - wrapcheck     # Errors from external packages wrapped
-    - errorlint     # errors.Is/As usage
+    - errcheck
+    - govet
+    - staticcheck
+    - unused
+    - gosimple
+    - ineffassign
+    - typecheck
+    - gocritic
+    - gofumpt
+    - misspell
+    - nolintlint
+    - wrapcheck
+    - errorlint
 
 linters-settings:
   govet:
@@ -421,9 +416,7 @@ linters-settings:
 ```
 
 ```bash
-golangci-lint run              # Lint current module
-golangci-lint run --fix        # Auto-fix where possible
-golangci-lint run --timeout 5m # Increase timeout for large codebases
+golangci-lint run              # Lint; add --fix to auto-fix, --timeout 5m for large codebases
 ```
 
 ## Pre-Commit
@@ -484,18 +477,18 @@ Based on OWASP Go Secure Coding Practices. Read the linked reference for each to
 
 ### Detailed Guides
 
-- [Input Validation](reference/input-validation.md) — whitelisting, boundary checks, escaping
-- [Database Security](reference/database-security.md) — prepared statements, parameterized queries
-- [Authentication](reference/authentication.md) — bcrypt, password storage
-- [Cryptography](reference/cryptography.md) — `crypto/rand`, never `math/rand` for security
-- [Session Management](reference/session-management.md) — secure cookies, session lifecycle
-- [TLS/HTTPS](reference/tls-https.md) — TLS config, HSTS, post-quantum key exchanges
-- [CSRF Protection](reference/csrf.md) — token generation, `http.CrossOriginProtection` (Go 1.25+)
-- [Secure Error Handling](reference/error-handling.md) — generic user messages, detailed server logs
-- [File Security](reference/file-security.md) — path traversal prevention, `os.OpenRoot`
-- [Security Logging](reference/logging.md) — what to log, what never to log
-- [Access Control](reference/access-control.md)
-- [XSS Prevention](reference/xss.md)
+- [Input Validation](references/input-validation.md) — whitelisting, boundary checks, escaping
+- [Database Security](references/database-security.md) — prepared statements, parameterized queries
+- [Authentication](references/authentication.md) — bcrypt, password storage
+- [Cryptography](references/cryptography.md) — `crypto/rand`, never `math/rand` for security
+- [Session Management](references/session-management.md) — secure cookies, session lifecycle
+- [TLS/HTTPS](references/tls-https.md) — TLS config, HSTS, post-quantum key exchanges
+- [CSRF Protection](references/csrf.md) — token generation, `http.CrossOriginProtection` (Go 1.25+)
+- [Secure Error Handling](references/error-handling.md) — generic user messages, detailed server logs
+- [File Security](references/file-security.md) — path traversal prevention, `os.OpenRoot`
+- [Security Logging](references/logging.md) — what to log, what never to log
+- [Access Control](references/access-control.md)
+- [XSS Prevention](references/xss.md)
 
 ### Security Tools
 

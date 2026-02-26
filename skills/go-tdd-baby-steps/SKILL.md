@@ -1,6 +1,6 @@
 ---
 name: go-tdd-baby-steps
-description: TDD with baby steps for Go. Use when writing tests, doing TDD, or when test cycles are too large and risky. Covers table-driven tests, testify, t.Run subtests, t.Helper, and incremental test progression.
+description: TDD with baby steps for Go. Use when writing tests, doing TDD, or when test cycles are too large and risky. Covers table-driven tests, testify, t.Run subtests, t.Helper, and incremental test progression. Don't use for non-Go testing frameworks, integration tests, end-to-end tests, or languages other than Go.
 ---
 
 # Go TDD Baby Steps
