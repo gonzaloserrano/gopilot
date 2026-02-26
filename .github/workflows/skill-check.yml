@@ -12,7 +12,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: thedaviddias/skill-check@v1.2.0
+      - uses: actions/setup-node@v4
         with:
-          path: .
-          format: github
+          node-version: '20'
+
+      - name: Run skill-check
+        run: npx skill-check@latest --format github .
