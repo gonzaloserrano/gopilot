@@ -1,4 +1,4 @@
-.PHONY: bump
+.PHONY: bump check
 
 PLUGIN_JSON := .claude-plugin/plugin.json
 MARKETPLACE_JSON := .claude-plugin/marketplace.json
@@ -13,3 +13,6 @@ bump:
 	jq --arg v "$$new_version" '.version = $$v' $(PLUGIN_JSON) > tmp.json && mv tmp.json $(PLUGIN_JSON); \
 	jq --arg v "$$new_version" '.metadata.version = $$v | .plugins[0].version = $$v' $(MARKETPLACE_JSON) > tmp.json && mv tmp.json $(MARKETPLACE_JSON); \
 	echo "Bumped version: $$current -> $$new_version"
+
+check:
+	npx skill-check .
