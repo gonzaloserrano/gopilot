@@ -223,10 +223,17 @@ filtering.Walk(func(curr, parent *expr.Expr) bool {
 }, filter.CheckedExpr.GetExpr())
 ```
 
-### Derive declarations from protobuf messages
+### Declaring identifiers from proto message fields
 
 ```go
-decls, err := filtering.ProtoDeclarations((*pb.MyResource)(nil))
+// Declare identifiers matching your proto message fields
+decls, err := filtering.NewDeclarations(
+    filtering.DeclareStandardFunctions(),
+    filtering.DeclareIdent("name", filtering.TypeString),
+    filtering.DeclareIdent("status", filtering.TypeEnum(pb.Status(0).Type())),
+    filtering.DeclareIdent("create_time", filtering.TypeTimestamp),
+    filtering.DeclareIdent("labels", filtering.TypeMap(filtering.TypeString, filtering.TypeString)),
+)
 ```
 
 ## Ordering (AIP-132)
@@ -256,7 +263,7 @@ if err := orderBy.ValidateForPaths("name", "create_time", "priority"); err != ni
 
 // Use parsed fields
 for _, field := range orderBy.Fields {
-    column := strings.Join(field.Path, ".")
+    column := field.Path // already dot-separated string
     if field.Desc {
         // ORDER BY column DESC
     }

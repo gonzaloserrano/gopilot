@@ -348,7 +348,7 @@ For building resource-oriented gRPC APIs following [Google AIP](https://google.a
 - **Pagination** (AIP-158): implement from day one with `pagination.ParsePageToken`; opaque tokens, coerce oversized `page_size`, never require `page_size`
 - **Filtering** (AIP-160): parse with `filtering.ParseFilter` and typed `Declarations`; validate server-side, return `INVALID_ARGUMENT`
 - **Ordering** (AIP-132): parse with `ordering.ParseOrderBy`; validate against allowed fields with `ValidateForPaths`
-- **Field masks** (AIP-134): use `fieldmask.Update` for partial updates, `fieldmask.Validate` for path validation; prefer `PATCH` over `PUT`
+- **Field masks** (AIP-134, AIP-161): use `fieldmask.Update` for partial updates, `fieldmask.Validate` for path validation; prefer `PATCH` over `PUT`
 - **Field behavior** (AIP-203): annotate every field — `REQUIRED`, `OPTIONAL`, `OUTPUT_ONLY`, `IMMUTABLE`, or `IDENTIFIER`
 
 See [AIP reference](reference/go-aip.md) for detailed patterns, code examples, and best practices.
