@@ -1,6 +1,6 @@
 ---
 name: gopilot
-description: Go programming language skill for writing idiomatic Go code, code review, error handling, testing, concurrency, security, and program design. Use when writing Go code, reviewing Go PRs, debugging Go tests, fixing Go errors, designing Go APIs, implementing security-sensitive code, handling user input, authentication, sessions, cryptography, or asking about Go best practices. Covers table-driven tests, error wrapping, goroutine patterns, interface design, generics, iterators, stdlib patterns up to Go 1.26, and OWASP security practices.
+description: Go programming language skill for writing idiomatic Go code, code review, error handling, testing, concurrency, security, and program design. Use when writing Go code, reviewing Go PRs, debugging Go tests, fixing Go errors, designing Go APIs, implementing security-sensitive code, handling user input, authentication, sessions, cryptography, building resource-oriented gRPC APIs with Google AIP standards, or asking about Go best practices. Covers table-driven tests, error wrapping, goroutine patterns, interface design, generics, iterators, stdlib patterns up to Go 1.26, OWASP security practices, and Google AIP (API Improvement Proposals) with einride/aip-go for pagination, filtering, ordering, field masks, and resource names.
 ---
 
 # Go Engineering
@@ -338,6 +338,20 @@ func getHandler(w http.ResponseWriter, r *http.Request) {
     id := r.PathValue("id")
 }
 ```
+
+### AIP: Resource-Oriented gRPC APIs
+
+For building resource-oriented gRPC APIs following [Google AIP](https://google.aip.dev/) standards, use [einride/aip-go](https://github.com/einride/aip-go) (`go.einride.tech/aip`).
+
+- **Resource names** (AIP-122): hierarchical paths like `publishers/123/books/les-miserables`; use `resourcename.Sscan`/`Sprint`/`Match` for parsing and construction
+- **Standard methods**: Get (131), List (132), Create (133), Update (134), Delete (135) — prefer these over custom methods
+- **Pagination** (AIP-158): implement from day one with `pagination.ParsePageToken`; opaque tokens, coerce oversized `page_size`, never require `page_size`
+- **Filtering** (AIP-160): parse with `filtering.ParseFilter` and typed `Declarations`; validate server-side, return `INVALID_ARGUMENT`
+- **Ordering** (AIP-132): parse with `ordering.ParseOrderBy`; validate against allowed fields with `ValidateForPaths`
+- **Field masks** (AIP-134): use `fieldmask.Update` for partial updates, `fieldmask.Validate` for path validation; prefer `PATCH` over `PUT`
+- **Field behavior** (AIP-203): annotate every field — `REQUIRED`, `OPTIONAL`, `OUTPUT_ONLY`, `IMMUTABLE`, or `IDENTIFIER`
+
+See [AIP reference](reference/go-aip.md) for detailed patterns, code examples, and best practices.
 
 ### CSRF Protection (Go 1.25+)
 ```go
