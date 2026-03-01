@@ -49,6 +49,7 @@ Bump version to 1.0.17
 
 ## Skill content guidelines
 
+- **SKILL.md body must stay under 500 lines** (skill-check enforces this). The body is everything after the YAML frontmatter. If adding content would exceed the limit, extract detailed material into a `reference/*.md` file and link it from SKILL.md with a concise summary.
 - Keep patterns concise and actionable — this is a reference, not a tutorial
 - Include code examples where they clarify usage
 - Reference Go version for version-specific features (e.g., "Go 1.24+")
