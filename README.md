@@ -33,6 +33,7 @@ A Claude Code plugin with production-tested Go patterns covering idiomatic code 
 | **Concurrency** | Channels, mutexes, `errgroup`, `sync.Once`, context cancellation |
 | **Iterators** | `iter.Seq`, `slices.Collect`, `maps.Keys`, range over func |
 | **Interfaces** | Consumer-side definition, compile-time checks, function types |
+| **AIP** | Resource-oriented gRPC APIs with einride/aip-go: pagination, filtering, ordering, field masks, resource names |
 | **Patterns** | Options pattern, `cmp.Or`, HTTP best practices, slog |
 | **Security** | Input validation, SQL injection, auth, sessions, TLS, CSRF, crypto |
 | **Linting** | golangci-lint configuration, recommended linters |
@@ -101,5 +102,7 @@ Contributions welcome! The skill is defined in `skills/gopilot/SKILL.md` with de
 - [Effective Go](https://go.dev/doc/effective_go)
 - [Go Code Review Comments](https://go.dev/wiki/CodeReviewComments)
 - [Go Proverbs](https://go-proverbs.github.io/)
+- [Google API Improvement Proposals](https://google.aip.dev/)
+- [einride/aip-go](https://github.com/einride/aip-go)
 - [OWASP Go Secure Coding Practices](https://owasp.org/www-project-go-secure-coding-practices-guide/)
 - [Don't just check errors, handle them gracefully](https://dave.cheney.net/2016/04/27/dont-just-check-errors-handle-them-gracefully) - Opaque errors, behavior assertion, handle once
