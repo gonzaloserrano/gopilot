@@ -121,25 +121,33 @@ if cause := context.Cause(ctx); cause != nil {
 ### Table-Driven Tests
 ```go
 func TestFoo(t *testing.T) {
-    tests := []struct {
-        name    string
-        input   string
-        want    string
-        wantErr error
+    testCases := []struct {
+        name           string
+        input          string
+        expectedResult string
+        expectedError  error
     }{
-        {"EmptyInput", "", "", ErrEmpty},
-        {"ValidInput", "hello", "HELLO", nil},
+        {
+            name:          "EmptyInput",
+            input:         "",
+            expectedError: ErrEmpty,
+        },
+        {
+            name:           "ValidInput",
+            input:          "hello",
+            expectedResult: "HELLO",
+        },
     }
-    for _, tc := range tests {
+    for _, tc := range testCases {
         t.Run(tc.name, func(t *testing.T) {
             t.Parallel()
             got, err := Foo(tc.input)
-            if tc.wantErr != nil {
-                require.ErrorIs(t, err, tc.wantErr)
+            if tc.expectedError != nil {
+                require.ErrorIs(t, err, tc.expectedError)
                 return
             }
             require.NoError(t, err)
-            require.Equal(t, tc.want, got)
+            require.Equal(t, tc.expectedResult, got)
         })
     }
 }
@@ -163,6 +171,7 @@ Benefits: single execution per `-count`, prevents compiler optimizations away.
 - Use `embed.FS` for test data files
 
 ### Practices
+- Test function names: use `TestFooBar` (PascalCase), not `TestFoo_Bar` (no underscores)
 - `t.Helper()` in helper functions
 - `t.Cleanup()` for resource cleanup
 - `t.Context()` for test-scoped context (Go 1.24+)
