@@ -217,89 +217,11 @@ Key rules:
 
 ## Concurrency
 
-### Design
-- Don't communicate by sharing memory, share memory by communicating
-- Channels orchestrate; mutexes serialize
-- Use `errgroup.WithContext` to launch goroutines that return errors; `g.Wait()` returns first error
-- `sync.WaitGroup.Go()` (Go 1.25+): cleaner goroutine launching
-  ```go
-  var wg sync.WaitGroup
-  wg.Go(func() { work() })  // Combines Add(1) + go
-  wg.Wait()
-  ```
-- Make goroutine lifetime explicit; document when/why they exit
-- Avoid goroutine leaks (blocked on unreachable channels); use goroutine leak profile to detect (`GOEXPERIMENT=goroutineleakprofile`, Go 1.26+)
-- Use `context.Context` for cancellation
-- Subscribe to `context.Done()` for graceful shutdown
-- Prefer synchronous functions; let callers add concurrency if needed
-- `sync.Mutex`/`RWMutex` for protection; zero value is ready to use
-- `RWMutex` when reads >> writes
-- Pointer receivers with mutexes (prevent struct copy)
-- Keep critical sections small; avoid locks across I/O
-- `sync.Once` for one-time initialization; helpers: `sync.OnceFunc()`, `sync.OnceValue()`, `sync.OnceValues()` (Go 1.21+)
-- `atomic` for primitive counters
-- Don't embed mutex (exposes Lock/Unlock); use named field
-- Channels:
-    - Sender closes, receiver checks
-    - Don't close from receiver side
-    - Never close with multiple concurrent senders
-    - Document buffering rationale
-    - Prefer `select` with `context.Done()` for cancellation
-
-### Axioms
-
-| Operation | nil channel | closed channel |
-|-----------|-------------|----------------|
-| Send      | blocks forever | **panics** |
-| Receive   | blocks forever | returns zero value |
-| Close     | **panics** | **panics** |
-
-- Nil channels are useful in `select` to disable a case
-- Use `for range ch` to receive until closed
-- Check closure with `v, ok := <-ch`
+Share memory by communicating. Channels orchestrate; mutexes serialize. Use `errgroup.WithContext` for goroutines returning errors, `sync.WaitGroup.Go()` (Go 1.25+) for simple fan-out. Prefer synchronous functions; let callers add concurrency. See [concurrency reference](reference/concurrency.md) for design patterns, mutex/channel guidelines, and channel axioms.
 
 ## Iterators (Go 1.22+)
 
-### Range Over Integers (Go 1.22+)
-```go
-for i := range 10 {
-    fmt.Println(i)  // 0..9
-}
-```
-
-### Range Over Functions (Go 1.23+)
-```go
-// String iterators
-for line := range strings.Lines(s) { }
-for part := range strings.SplitSeq(s, sep) { }
-for field := range strings.FieldsSeq(s) { }
-
-// Slice iterators
-for i, v := range slices.All(items) { }
-for v := range slices.Values(items) { }
-for v := range slices.Backward(items) { }
-for chunk := range slices.Chunk(items, 3) { }
-
-// Map iterators
-for k, v := range maps.All(m) { }
-for k := range maps.Keys(m) { }
-for v := range maps.Values(m) { }
-
-// Collect iterator to slice
-keys := slices.Collect(maps.Keys(m))
-sorted := slices.Sorted(maps.Keys(m))
-
-// Custom iterator
-func (s *Set[T]) All() iter.Seq[T] {
-    return func(yield func(T) bool) {
-        for v := range s.items {
-            if !yield(v) {
-                return
-            }
-        }
-    }
-}
-```
+Range over integers (`for i := range 10`), functions (Go 1.23+), and use `slices`/`maps` iterator helpers. See [iterators reference](reference/iterators.md) for full API and custom iterator patterns.
 
 ## Interface Design
 
@@ -413,38 +335,9 @@ Advantages over `SetFinalizer`: multiple cleanups per object, works with interio
 - Timer/Ticker channels: capacity 0 (Go 1.23+); previously capacity 1
 - `init()` is an anti-pattern; prefer explicit initialization
 
-## Linting (golangci-lint)
+## Linting
 
-```yaml
-# .golangci.yml
-linters:
-  enable:
-    - errcheck      # Unchecked errors
-    - govet         # Suspicious constructs
-    - staticcheck   # Static analysis
-    - unused        # Unused code
-    - gosimple      # Simplifications
-    - ineffassign   # Ineffectual assignments
-    - typecheck     # Type checking
-    - gocritic      # Opinionated checks
-    - gofumpt       # Stricter gofmt
-    - misspell      # Spelling
-    - nolintlint    # Malformed //nolint directives
-    - wrapcheck     # Errors from external packages wrapped
-    - errorlint     # errors.Is/As usage
-
-linters-settings:
-  govet:
-    enable-all: true
-  gocritic:
-    enabled-tags: [diagnostic, style, performance]
-```
-
-```bash
-golangci-lint run              # Lint current module
-golangci-lint run --fix        # Auto-fix where possible
-golangci-lint run --timeout 5m # Increase timeout for large codebases
-```
+Use `golangci-lint` with recommended linters: errcheck, govet, staticcheck, gocritic, gofumpt, wrapcheck, errorlint. See [linting reference](reference/linting.md) for full config.
 
 ## Pre-Commit
 
