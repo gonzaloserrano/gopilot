@@ -1,6 +1,6 @@
 ---
 name: gopilot
-description: Go programming language skill for writing idiomatic Go code, code review, error handling, testing, concurrency, security, and program design. Use when writing Go code, reviewing Go PRs, debugging Go tests, fixing Go errors, designing Go APIs, implementing security-sensitive code, handling user input, authentication, sessions, cryptography, building resource-oriented gRPC APIs with Google AIP standards, or asking about Go best practices. Covers table-driven tests, error wrapping, goroutine patterns, interface design, generics, iterators, stdlib patterns up to Go 1.26, OWASP security practices, and Google AIP (API Improvement Proposals) with einride/aip-go for pagination, filtering, ordering, field masks, and resource names.
+description: "v1.0.20 — Go programming language skill for writing idiomatic Go code, code review, error handling, testing, concurrency, security, and program design. Use when writing Go code, reviewing Go PRs, debugging Go tests, fixing Go errors, designing Go APIs, implementing security-sensitive code, handling user input, authentication, sessions, cryptography, building resource-oriented gRPC APIs with Google AIP standards, or asking about Go best practices. Covers table-driven tests, error wrapping, goroutine patterns, interface design, generics, iterators, stdlib patterns up to Go 1.26, OWASP security practices, and Google AIP (API Improvement Proposals) with einride/aip-go for pagination, filtering, ordering, field masks, and resource names."
 ---
 
 # Go Engineering

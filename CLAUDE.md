@@ -30,12 +30,13 @@ Always run `make check` before pushing. CI runs the same check on PRs to main.
 ### Versioning
 
 ```bash
-make bump     # Increments patch version in plugin.json and marketplace.json
+make bump     # Increments patch version in plugin.json, marketplace.json, and SKILL.md frontmatters
 ```
 
 Always bump after content changes. Version is tracked in:
 - `.claude-plugin/plugin.json` (`.version`)
 - `.claude-plugin/marketplace.json` (`.metadata.version` and `.plugins[0].version`)
+- `skills/*/SKILL.md` frontmatter (version prefix in `description`)
 
 ### Commit conventions
 
