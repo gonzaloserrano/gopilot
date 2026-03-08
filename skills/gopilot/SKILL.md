@@ -1,6 +1,6 @@
 ---
 name: gopilot
-description: "v1.0.20 — Go programming language skill for writing idiomatic Go code, code review, error handling, testing, concurrency, security, and program design. Use when writing Go code, reviewing Go PRs, debugging Go tests, fixing Go errors, designing Go APIs, implementing security-sensitive code, handling user input, authentication, sessions, cryptography, building resource-oriented gRPC APIs with Google AIP standards, or asking about Go best practices. Covers table-driven tests, error wrapping, goroutine patterns, interface design, generics, iterators, stdlib patterns up to Go 1.26, OWASP security practices, and Google AIP (API Improvement Proposals) with einride/aip-go for pagination, filtering, ordering, field masks, and resource names."
+description: "v1.0.21 — Go programming language skill for writing idiomatic Go code, code review, error handling, testing, concurrency, security, and program design. Use when writing, reviewing, debugging, or asking about Go code — even if the user doesn't explicitly mention 'Go best practices'. Also use when: reviewing Go PRs, debugging Go tests, fixing Go errors, designing Go APIs, implementing security-sensitive code, handling user input, authentication, sessions, cryptography, building resource-oriented gRPC APIs with Google AIP standards, configuring golangci-lint, setting up structured logging with slog, or any question about Go idioms and patterns. Covers table-driven tests, error wrapping, goroutine patterns, interface design, generics, iterators, stdlib patterns up to Go 1.26, OWASP security practices, and Google AIP (API Improvement Proposals) with einride/aip-go for pagination, filtering, ordering, field masks, and resource names."
 ---
 
 # Go Engineering
@@ -40,7 +40,7 @@ description: "v1.0.20 — Go programming language skill for writing idiomatic Go
 - Join multiple errors: `err := errors.Join(err1, err2, err3)` (Go 1.20+)
 - Error strings: lowercase, no punctuation
 - Avoid "failed to" prefixes - they accumulate through the stack (`"connect: %w"` not `"failed to connect: %w"`)
-- **CRITICAL**: Always check errors immediately before using returned values (Go 1.25 fixed compiler bug that could delay nil checks)
+- Always check errors immediately before using returned values — in Go 1.21–1.24, the compiler could reorder statements and execute method calls on nil receivers before the error check ran, causing panics (fixed in Go 1.25)
 
 ### Error Strategy (Opaque Errors First)
 
@@ -217,11 +217,82 @@ Key rules:
 
 ## Concurrency
 
-Share memory by communicating. Channels orchestrate; mutexes serialize. Use `errgroup.WithContext` for goroutines returning errors, `sync.WaitGroup.Go()` (Go 1.25+) for simple fan-out. Prefer synchronous functions; let callers add concurrency. See [concurrency reference](reference/concurrency.md) for design patterns, mutex/channel guidelines, and channel axioms.
+Share memory by communicating — channels orchestrate; mutexes serialize.
+
+- Use `errgroup.WithContext` to launch goroutines that return errors; `g.Wait()` returns first error
+- `sync.WaitGroup.Go()` (Go 1.25+): combines Add(1) + goroutine launch
+  ```go
+  var wg sync.WaitGroup
+  wg.Go(func() { work() })  // Combines Add(1) + go
+  wg.Wait()
+  ```
+- Make goroutine lifetime explicit; document when/why they exit
+- Avoid goroutine leaks (blocked on unreachable channels); detect with `GOEXPERIMENT=goroutineleakprofile` (Go 1.26+)
+- Use `context.Context` for cancellation; subscribe to `context.Done()` for graceful shutdown
+- Prefer synchronous functions; let callers add concurrency if needed
+- `sync.Mutex`/`RWMutex` for shared state protection; zero value is ready to use
+- `RWMutex` when reads far outnumber writes
+- Pointer receivers with mutexes (prevents struct copy which breaks lock semantics)
+- Keep critical sections small; avoid holding locks across I/O
+- `sync.Once` for one-time initialization; helpers: `sync.OnceFunc()`, `sync.OnceValue()`, `sync.OnceValues()` (Go 1.21+)
+- `atomic` for primitive counters (simpler than mutex for single values)
+- Don't embed mutex (exposes Lock/Unlock to callers); use a named field instead
+- Channels: sender closes, receiver checks; never close from receiver side or with multiple concurrent senders
+
+### Channel Axioms
+
+| Operation | nil channel | closed channel |
+|-----------|-------------|----------------|
+| Send      | blocks forever | **panics** |
+| Receive   | blocks forever | returns zero value |
+| Close     | **panics** | **panics** |
+
+- Nil channels are useful in `select` to disable a case
+- Use `for range ch` to receive until closed
+- Check closure with `v, ok := <-ch`
 
 ## Iterators (Go 1.22+)
 
-Range over integers (`for i := range 10`), functions (Go 1.23+), and use `slices`/`maps` iterator helpers. See [iterators reference](reference/iterators.md) for full API and custom iterator patterns.
+### Range Over Integers (Go 1.22+)
+```go
+for i := range 10 {
+    fmt.Println(i)  // 0..9
+}
+```
+
+### Range Over Functions (Go 1.23+)
+```go
+// String iterators
+for line := range strings.Lines(s) { }
+for part := range strings.SplitSeq(s, sep) { }
+for field := range strings.FieldsSeq(s) { }
+
+// Slice iterators
+for i, v := range slices.All(items) { }
+for v := range slices.Values(items) { }
+for v := range slices.Backward(items) { }
+for chunk := range slices.Chunk(items, 3) { }
+
+// Map iterators
+for k, v := range maps.All(m) { }
+for k := range maps.Keys(m) { }
+for v := range maps.Values(m) { }
+
+// Collect iterator to slice
+keys := slices.Collect(maps.Keys(m))
+sorted := slices.Sorted(maps.Keys(m))
+
+// Custom iterator
+func (s *Set[T]) All() iter.Seq[T] {
+    return func(yield func(T) bool) {
+        for v := range s.items {
+            if !yield(v) {
+                return
+            }
+        }
+    }
+}
+```
 
 ## Interface Design
 
@@ -337,7 +408,7 @@ Advantages over `SetFinalizer`: multiple cleanups per object, works with interio
 
 ## Linting
 
-Use `golangci-lint` with recommended linters: errcheck, govet, staticcheck, gocritic, gofumpt, wrapcheck, errorlint. See [linting reference](reference/linting.md) for full config.
+Use `golangci-lint` with recommended linters: errcheck, govet, staticcheck, gocritic, gofumpt, wrapcheck, errorlint. See [linting reference](reference/linting.md) for the full `.golangci.yml` config template and commands.
 
 ## Pre-Commit
 
@@ -397,18 +468,20 @@ Based on OWASP Go Secure Coding Practices. Read the linked reference for each to
 
 ### Detailed Guides
 
-- [Input Validation](reference/input-validation.md) — whitelisting, boundary checks, escaping
-- [Database Security](reference/database-security.md) — prepared statements, parameterized queries
-- [Authentication](reference/authentication.md) — bcrypt, password storage
-- [Cryptography](reference/cryptography.md) — `crypto/rand`, never `math/rand` for security
-- [Session Management](reference/session-management.md) — secure cookies, session lifecycle
-- [TLS/HTTPS](reference/tls-https.md) — TLS config, HSTS, post-quantum key exchanges
-- [CSRF Protection](reference/csrf.md) — token generation, `http.CrossOriginProtection` (Go 1.25+)
-- [Secure Error Handling](reference/error-handling.md) — generic user messages, detailed server logs
-- [File Security](reference/file-security.md) — path traversal prevention, `os.OpenRoot`
-- [Security Logging](reference/logging.md) — what to log, what never to log
-- [Access Control](reference/access-control.md)
-- [XSS Prevention](reference/xss.md)
+Read the relevant guide when implementing security-sensitive features. Each covers patterns, code examples, and common pitfalls for its domain.
+
+- [Input Validation](reference/input-validation.md) — read when accepting user input: whitelisting, boundary checks, escaping
+- [Database Security](reference/database-security.md) — read when writing SQL or database code: prepared statements, parameterized queries
+- [Authentication](reference/authentication.md) — read when implementing login, signup, or password flows: bcrypt, Argon2, password policies
+- [Cryptography](reference/cryptography.md) — read when generating tokens, secrets, or random values: `crypto/rand`, never `math/rand` for security
+- [Session Management](reference/session-management.md) — read when implementing user sessions: secure cookies, session lifecycle, JWT
+- [TLS/HTTPS](reference/tls-https.md) — read when configuring servers or HTTP clients: TLS config, HSTS, mTLS, post-quantum key exchanges
+- [CSRF Protection](reference/csrf.md) — read when building forms or state-changing endpoints: token generation, `http.CrossOriginProtection` (Go 1.25+)
+- [Secure Error Handling](reference/error-handling.md) — read when designing error responses: generic user messages, detailed server logs
+- [File Security](reference/file-security.md) — read when handling file uploads or filesystem access: path traversal prevention, `os.OpenRoot`
+- [Security Logging](reference/logging.md) — read when implementing audit trails: what to log, what never to log, redaction
+- [Access Control](reference/access-control.md) — read when implementing authorization: RBAC, ABAC, principle of least privilege
+- [XSS Prevention](reference/xss.md) — read when rendering user content in HTML: `html/template`, CSP, sanitization
 
 ### Security Tools
 
