@@ -13,6 +13,7 @@ bump:
 	jq --arg v "$$new_version" '.version = $$v' $(PLUGIN_JSON) > tmp.json && mv tmp.json $(PLUGIN_JSON); \
 	jq --arg v "$$new_version" '.metadata.version = $$v | .plugins[0].version = $$v' $(MARKETPLACE_JSON) > tmp.json && mv tmp.json $(MARKETPLACE_JSON); \
 	for f in skills/*/SKILL.md; do sed -i "s/v$$current/v$$new_version/" "$$f"; done; \
+	for f in skills/*/SKILL.md; do sed -i "s/^  version: $$current$$/  version: $$new_version/" "$$f"; done; \
 	echo "Bumped version: $$current -> $$new_version"
 
 check:
