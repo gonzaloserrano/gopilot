@@ -1,5 +1,14 @@
 # Authentication & Password Management
 
+## Table of Contents
+- [Password Storage Theory](#password-storage-theory)
+- [Password Storage Practice](#password-storage-practice)
+- [Alternative: passwd Package](#alternative-passwd-package)
+- [Password Policies](#password-policies)
+- [Authentication Guidelines](#authentication-guidelines)
+- [Communicating Authentication Data](#communicating-authentication-data)
+- [Best Practices](#best-practices)
+
 ## Password Storage Theory
 
 ### Why Hash Passwords?

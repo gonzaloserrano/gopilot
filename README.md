@@ -30,13 +30,13 @@ A Claude Code plugin with production-tested Go patterns covering idiomatic code 
 | **Error Handling** | Wrapping, sentinel errors, `errors.Is`/`As`, `errors.Join` |
 | **Generics** | Type parameters, constraints, `comparable`, `cmp.Ordered` |
 | **Testing** | Table-driven tests, testify, `t.Parallel()`, `t.Cleanup()`, benchmarks |
-| **Concurrency** | Channels, mutexes, `errgroup`, `sync.Once`, context cancellation |
-| **Iterators** | `iter.Seq`, `slices.Collect`, `maps.Keys`, range over func |
+| **Concurrency** | Channels, channel axioms, mutexes, `errgroup`, `sync.Once`, `WaitGroup.Go`, context cancellation |
+| **Iterators** | `iter.Seq`, `slices.Collect`, `maps.Keys`, range over func, custom iterators |
 | **Interfaces** | Consumer-side definition, compile-time checks, function types |
 | **AIP** | Resource-oriented gRPC APIs with einride/aip-go: pagination, filtering, ordering, field masks, resource names |
 | **Patterns** | Options pattern, `cmp.Or`, HTTP best practices, slog |
 | **Security** | Input validation, SQL injection, auth, sessions, TLS, CSRF, crypto |
-| **Linting** | golangci-lint configuration, recommended linters |
+| **Linting** | golangci-lint configuration, recommended linters, auto-fix |
 | **TDD Baby Steps** | Red-green-refactor, table-driven test progression, `t.Run`, `t.Helper` |
 
 ## Go Version Support

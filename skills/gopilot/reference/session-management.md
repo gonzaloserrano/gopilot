@@ -1,5 +1,16 @@
 # Session Management
 
+## Table of Contents
+- [Core Principles](#core-principles)
+- [JWT Sessions](#jwt-sessions)
+- [Secure Cookies](#secure-cookies)
+- [Session Storage](#session-storage)
+- [Session Lifecycle](#session-lifecycle)
+- [Session Best Practices](#session-best-practices)
+- [HTTPS Requirement](#https-requirement)
+- [Gorilla Sessions](#gorilla-sessions)
+- [Summary](#summary)
+
 ## Core Principles
 
 - Server-generated session identifiers only

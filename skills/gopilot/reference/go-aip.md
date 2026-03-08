@@ -2,6 +2,18 @@
 
 Guidelines for building resource-oriented gRPC APIs following [Google AIP](https://google.aip.dev/) standards using [einride/aip-go](https://github.com/einride/aip-go).
 
+## Table of Contents
+- [Resource-Oriented Design (AIP-121)](#resource-oriented-design-aip-121)
+- [Resource Names (AIP-122)](#resource-names-aip-122)
+- [Standard Methods (AIP-130 through AIP-135)](#standard-methods-aip-130-through-aip-135)
+- [Pagination (AIP-158)](#pagination-aip-158)
+- [Filtering (AIP-160)](#filtering-aip-160)
+- [Ordering (AIP-132)](#ordering-aip-132)
+- [Field Masks (AIP-134, AIP-161)](#field-masks-aip-134-aip-161)
+- [Field Behavior (AIP-203)](#field-behavior-aip-203)
+- [Setup](#setup)
+- [Best Practices](#best-practices)
+
 ## Resource-Oriented Design (AIP-121)
 
 Design APIs around resources (nouns), not actions (verbs):
