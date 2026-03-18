@@ -32,6 +32,11 @@ if ! build_output=$(go build ./... 2>&1); then
   errors+="go build failed:\n$build_output\n\n"
 fi
 
+# Test compilation check (compiles _test.go files without running tests)
+if ! test_build_output=$(go test -exec true ./... 2>&1); then
+  errors+="go test compilation failed:\n$test_build_output\n\n"
+fi
+
 # Lint check
 if command -v golangci-lint &>/dev/null; then
   if ! lint_output=$(golangci-lint run 2>&1); then
