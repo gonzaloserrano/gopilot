@@ -1,6 +1,6 @@
 ---
 name: gopilot
-description: "v1.0.24 — Go programming language skill for writing idiomatic Go code, code review, error handling, testing, concurrency, security, and program design. Use when writing, reviewing, debugging, or asking about Go code — even if the user doesn't explicitly mention 'Go best practices'. Also use when: reviewing Go PRs, debugging Go tests, fixing Go errors, designing Go APIs, implementing security-sensitive code, handling user input, authentication, sessions, cryptography, building resource-oriented gRPC APIs with Google AIP standards, configuring golangci-lint, setting up structured logging with slog, or any question about Go idioms and patterns. Covers table-driven tests, error wrapping, goroutine patterns, interface design, generics, iterators, stdlib patterns up to Go 1.26, OWASP security practices, and Google AIP (API Improvement Proposals) with einride/aip-go for pagination, filtering, ordering, field masks, and resource names."
+description: "v1.0.25 — Go programming language skill for writing idiomatic Go code, code review, error handling, testing, concurrency, security, and program design. Use when writing, reviewing, debugging, or asking about Go code — even if the user doesn't explicitly mention 'Go best practices'. Also use when: reviewing Go PRs, debugging Go tests, fixing Go errors, designing Go APIs, implementing security-sensitive code, handling user input, authentication, sessions, cryptography, building resource-oriented gRPC APIs with Google AIP standards, configuring golangci-lint, setting up structured logging with slog, or any question about Go idioms and patterns. Covers table-driven tests, error wrapping, goroutine patterns, interface design, generics, iterators, stdlib patterns up to Go 1.26, OWASP security practices, and Google AIP (API Improvement Proposals) with einride/aip-go for pagination, filtering, ordering, field masks, and resource names."
 ---
 
 # Go Engineering
@@ -33,7 +33,15 @@ description: "v1.0.24 — Go programming language skill for writing idiomatic Go
 ## Error Handling
 
 - Errors are values. Design APIs around that.
-- Wrap with context: `fmt.Errorf("get config %s: %w", name, err)`
+- Wrap with context: `fmt.Errorf("get config %s: %w", name, err)` -- use low-cardinality strings only (no IDs, names, or variable data in the format string; attach those as structured slog attributes so APM tools can group errors)
+  ```go
+  // Bad: high-cardinality error string -- APM sees each user as a unique error
+  return fmt.Errorf("fetch user %s: %w", userID, err)
+
+  // Good: stable error string + structured context
+  slog.ErrorContext(ctx, "fetch user", "user_id", userID, "error", err)
+  return fmt.Errorf("fetch user: %w", err)
+  ```
 - Sentinel errors: `var ErrNotFound = errors.New("not found")`
 - Check with `errors.Is(err, ErrNotFound)` or `errors.As(err, &target)`, or use generic `errors.AsType[T]` (Go 1.26+)
 - Static errors: prefer `errors.New` over `fmt.Errorf` without formatting
@@ -182,6 +190,18 @@ Benefits: single execution per `-count`, prevents compiler optimizations away.
 - Don't test stdlib; test YOUR code
 - Bug fix → add regression test first
 - Concurrent code needs concurrent tests
+- Detect goroutine leaks with `go.uber.org/goleak`:
+  ```go
+  func TestMain(m *testing.M) {
+      goleak.VerifyTestMain(m) // fails if any goroutine outlives the test suite
+  }
+  // Or per-test:
+  func TestFoo(t *testing.T) {
+      defer goleak.VerifyNone(t)
+      // ...
+  }
+  ```
+  Use `goleak.IgnoreTopFunction("...")` to allowlist known long-lived goroutines (e.g., `signal.Notify` handler)
 
 ### Testing Concurrent Code with synctest (Go 1.25+)
 
@@ -217,7 +237,20 @@ Key rules:
 
 ## Concurrency
 
-Share memory by communicating — channels orchestrate; mutexes serialize.
+Share memory by communicating -- channels orchestrate; mutexes serialize.
+
+### Choosing a Synchronization Primitive
+
+| Need | Use | Why |
+|------|-----|-----|
+| Single counter/flag | `atomic` | Lock-free, simplest |
+| Protect shared struct | `sync.Mutex` / `sync.RWMutex` | Direct, no goroutine overhead |
+| Transfer ownership of data | Unbuffered channel | Synchronizes sender and receiver |
+| Fan-out/fan-in, pipelines | Buffered channel + `select` | Composable, supports cancellation |
+| N goroutines, first error aborts | `errgroup.WithContext` | Propagates cancellation |
+| N goroutines, collect all errors | `errgroup` + `errors.Join` | No short-circuit |
+| One-time init | `sync.Once` / `sync.OnceValue` | Race-free lazy init |
+| Deduplicate concurrent calls | `singleflight.Group` | Coalesces in-flight requests |
 
 - Use `errgroup.WithContext` to launch goroutines that return errors; `g.Wait()` returns first error
 - `sync.WaitGroup.Go()` (Go 1.25+): combines Add(1) + goroutine launch
@@ -237,6 +270,16 @@ Share memory by communicating — channels orchestrate; mutexes serialize.
 - `sync.Once` for one-time initialization; helpers: `sync.OnceFunc()`, `sync.OnceValue()`, `sync.OnceValues()` (Go 1.21+)
 - `atomic` for primitive counters (simpler than mutex for single values)
 - Don't embed mutex (exposes Lock/Unlock to callers); use a named field instead
+- Prevent copying of structs with mutexes or goroutine state using `noCopy`:
+  ```go
+  type Server struct {
+      noCopy noCopy // go vet reports "copies lock value" if struct is copied
+      mu     sync.Mutex
+  }
+  type noCopy struct{}
+  func (*noCopy) Lock()   {}
+  func (*noCopy) Unlock() {}
+  ```
 - Channels: sender closes, receiver checks; never close from receiver side or with multiple concurrent senders
 
 ### Channel Axioms
@@ -322,6 +365,7 @@ Use `cmp.Or(a, b, c)` to return first non-zero value—e.g., `cmp.Or(cfg.Port, e
 - First parameter: `func Foo(ctx context.Context, ...)`
 - Don't store in structs
 - Use for cancellation, deadlines, request-scoped values only
+- `context.WithoutCancel(ctx)` (Go 1.21+): derive a context that keeps values but ignores parent cancellation -- use for background work that must outlive the request (e.g., async cleanup, audit logging)
 
 ### HTTP Best Practices
 - Use `http.Server{}` with explicit `ReadTimeout`/`WriteTimeout`; avoid `http.ListenAndServe`
@@ -343,41 +387,12 @@ func getHandler(w http.ResponseWriter, r *http.Request) {
 
 ### AIP: Resource-Oriented gRPC APIs
 
-For building resource-oriented gRPC APIs following [Google AIP](https://google.aip.dev/) standards, use [einride/aip-go](https://github.com/einride/aip-go) (`go.einride.tech/aip`).
+For building resource-oriented gRPC APIs following [Google AIP](https://google.aip.dev/) standards with [einride/aip-go](https://github.com/einride/aip-go), see [AIP reference](reference/go-aip.md) -- covers resource names, standard methods (CRUD), pagination, filtering, ordering, field masks, and field behavior annotations.
 
-- **Resource names** (AIP-122): hierarchical paths like `publishers/123/books/les-miserables`; use `resourcename.Sscan`/`Sprint`/`Match` for parsing and construction
-- **Standard methods**: Get (131), List (132), Create (133), Update (134), Delete (135) — prefer these over custom methods
-- **Pagination** (AIP-158): implement from day one with `pagination.ParsePageToken`; opaque tokens, coerce oversized `page_size`, never require `page_size`
-- **Filtering** (AIP-160): parse with `filtering.ParseFilter` and typed `Declarations`; validate server-side, return `INVALID_ARGUMENT`
-- **Ordering** (AIP-132): parse with `ordering.ParseOrderBy`; validate against allowed fields with `ValidateForPaths`
-- **Field masks** (AIP-134, AIP-161): use `fieldmask.Update` for partial updates, `fieldmask.Validate` for path validation; prefer `PATCH` over `PUT`
-- **Field behavior** (AIP-203): annotate every field — `REQUIRED`, `OPTIONAL`, `OUTPUT_ONLY`, `IMMUTABLE`, or `IDENTIFIER`
-
-See [AIP reference](reference/go-aip.md) for detailed patterns, code examples, and best practices.
-
-### CSRF Protection (Go 1.25+)
-```go
-import "net/http"
-
-handler := http.CrossOriginProtection(myHandler)
-// Rejects non-safe cross-origin requests using Fetch metadata
-```
-
-### Directory-Scoped File Access (Go 1.24+)
-```go
-root, err := os.OpenRoot("/var/data")
-if err != nil {
-    return err
-}
-f, err := root.Open("file.txt")  // Can't escape /var/data
-```
-Prevents path traversal attacks; works like a chroot.
-
-### Cleanup Functions (Go 1.24+)
-```go
-runtime.AddCleanup(obj, func() { cleanup() })
-```
-Advantages over `SetFinalizer`: multiple cleanups per object, works with interior pointers, no cycle leaks, faster.
+### Security Helpers
+- CSRF: `http.CrossOriginProtection(handler)` (Go 1.25+) -- rejects cross-origin state-changing requests
+- Path traversal prevention: `os.OpenRoot("/var/data")` (Go 1.24+) -- chroot-like scoped file access
+- GC cleanup: `runtime.AddCleanup(obj, fn)` (Go 1.24+) -- replaces `SetFinalizer`, supports multiple cleanups per object
 
 ## Structured Logging (log/slog)
 
@@ -386,6 +401,46 @@ Advantages over `SetFinalizer`: multiple cleanups per object, works with interio
 - JSON output: `slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))`
 
 ## Common Gotchas
+
+### Nil Safety
+
+| Operation | nil map | nil slice | nil channel |
+|-----------|---------|-----------|-------------|
+| Read/index | zero value | **panics** | blocks forever |
+| Write | **panics** | **panics** (index) | blocks forever |
+| `len` / `cap` | 0 | 0 | 0 |
+| `range` | 0 iterations | 0 iterations | blocks forever |
+| `append` | N/A | works (returns new) | N/A |
+| `delete` | no-op | N/A | N/A |
+| `close` | N/A | N/A | **panics** |
+
+### Slice Aliasing
+
+`append` on a sub-slice can silently mutate the original if capacity remains:
+```go
+a := []int{1, 2, 3, 4}
+b := a[:2]           // b shares a's backing array
+b = append(b, 99)    // overwrites a[2]! a is now [1, 2, 99, 4]
+```
+Fix with full-slice expression to cap the capacity:
+```go
+b := a[:2:2]         // len=2, cap=2 -- append allocates a new array
+b = append(b, 99)    // a is unchanged
+```
+
+### Copy Semantics
+
+| Type | Assignment copies... |
+|------|---------------------|
+| bool, int, float, complex, string | value (safe) |
+| array | all elements (deep) |
+| struct | all fields (shallow -- pointer fields share referent) |
+| slice | header only (shares backing array) |
+| map | header only (shares buckets) |
+| pointer, func, channel | pointer (shares referent) |
+| interface | header only (shares underlying value if pointer) |
+
+Use `slices.Clone` / `maps.Clone` for shallow copies at API boundaries.
 
 - **Check errors immediately** (Go 1.25 fixed compiler bug): always check `err != nil` before using any returned values
   ```go
@@ -440,53 +495,4 @@ go build  # Uses default.pgo
 
 ## Security
 
-Based on OWASP Go Secure Coding Practices. Read the linked reference for each topic.
-
-### Quick Checklist
-
-**Input/Output:**
-- [ ] All user input validated server-side
-- [ ] SQL queries use prepared statements only
-- [ ] XSS protection via `html/template`
-- [ ] CSRF tokens on state-changing requests
-- [ ] File paths validated against traversal (`os.OpenRoot` Go 1.24+)
-
-**Auth/Sessions:**
-- [ ] Passwords hashed with bcrypt/Argon2/PBKDF2
-- [ ] `crypto/rand` for all tokens/session IDs (`crypto/rand.Text()` Go 1.24+)
-- [ ] Secure cookie flags (HttpOnly, Secure, SameSite)
-- [ ] Session expiration enforced
-
-**Communication:**
-- [ ] HTTPS/TLS everywhere, TLS 1.2+ only (post-quantum ML-KEM default Go 1.24+)
-- [ ] HSTS header set
-- [ ] `InsecureSkipVerify = false`
-
-**Data Protection:**
-- [ ] Secrets in environment variables, never in logs/errors
-- [ ] Generic error messages to users
-
-### Detailed Guides
-
-Read the relevant guide when implementing security-sensitive features. Each covers patterns, code examples, and common pitfalls for its domain.
-
-- [Input Validation](reference/input-validation.md) — read when accepting user input: whitelisting, boundary checks, escaping
-- [Database Security](reference/database-security.md) — read when writing SQL or database code: prepared statements, parameterized queries
-- [Authentication](reference/authentication.md) — read when implementing login, signup, or password flows: bcrypt, Argon2, password policies
-- [Cryptography](reference/cryptography.md) — read when generating tokens, secrets, or random values: `crypto/rand`, never `math/rand` for security
-- [Session Management](reference/session-management.md) — read when implementing user sessions: secure cookies, session lifecycle, JWT
-- [TLS/HTTPS](reference/tls-https.md) — read when configuring servers or HTTP clients: TLS config, HSTS, mTLS, post-quantum key exchanges
-- [CSRF Protection](reference/csrf.md) — read when building forms or state-changing endpoints: token generation, `http.CrossOriginProtection` (Go 1.25+)
-- [Secure Error Handling](reference/error-handling.md) — read when designing error responses: generic user messages, detailed server logs
-- [File Security](reference/file-security.md) — read when handling file uploads or filesystem access: path traversal prevention, `os.OpenRoot`
-- [Security Logging](reference/logging.md) — read when implementing audit trails: what to log, what never to log, redaction
-- [Access Control](reference/access-control.md) — read when implementing authorization: RBAC, ABAC, principle of least privilege
-- [XSS Prevention](reference/xss.md) — read when rendering user content in HTML: `html/template`, CSP, sanitization
-
-### Security Tools
-
-| Tool | Purpose | Command |
-|------|---------|---------|
-| gosec | Security scanner | `gosec ./...` |
-| govulncheck | Vulnerability scanner | `govulncheck ./...` |
-| trivy | Container/dep scanner | `trivy fs .` |
+Based on OWASP Go Secure Coding Practices. See [security checklist and guides](reference/security-checklist.md) for the full checklist, detailed per-topic guides (input validation, auth, crypto, sessions, TLS, CSRF, file security, XSS, access control, logging), and security scanning tools (gosec, govulncheck, trivy).
