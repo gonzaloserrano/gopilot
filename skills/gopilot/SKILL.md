@@ -33,7 +33,7 @@ description: "v1.0.25 — Go programming language skill for writing idiomatic Go
 ## Error Handling
 
 - Errors are values. Design APIs around that.
-- Wrap with context: `fmt.Errorf("get config %s: %w", name, err)` -- use low-cardinality strings only (no IDs, names, or variable data in the format string; attach those as structured slog attributes so APM tools can group errors)
+- Wrap with context: `fmt.Errorf("get config: %w", err)` -- use low-cardinality strings only (no IDs, names, or variable data in the format string; attach those as structured slog attributes so APM tools can group errors)
   ```go
   // Bad: high-cardinality error string -- APM sees each user as a unique error
   return fmt.Errorf("fetch user %s: %w", userID, err)
