@@ -9,6 +9,11 @@ if [[ ! "$command" =~ ^git\ commit ]]; then
   exit 0
 fi
 
+# Respect --no-verify (same semantics as git's own hook skip)
+if [[ "$command" =~ --no-verify ]]; then
+  exit 0
+fi
+
 # Skip if not a Go project (search up to git root)
 find_go_mod() {
   local dir="$PWD"
@@ -39,7 +44,7 @@ fi
 
 # Lint check
 if command -v golangci-lint &>/dev/null; then
-  if ! lint_output=$(golangci-lint run 2>&1); then
+  if ! lint_output=$(golangci-lint run --new 2>&1); then
     errors+="golangci-lint failed:\n$lint_output\n\n"
   fi
 fi
