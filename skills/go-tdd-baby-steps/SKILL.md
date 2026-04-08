@@ -1,6 +1,6 @@
 ---
 name: go-tdd-baby-steps
-description: "v1.0.26 — TDD with baby steps for Go. Use when writing tests, doing TDD, practicing red-green-refactor, or when test cycles feel too large and risky. Also use when the user asks about incremental test development, test-first workflow, or wants help breaking a feature into small testable steps. Covers table-driven tests, testify, t.Run subtests, t.Helper, transformation priority premise, and incremental test progression."
+description: "v1.0.27 — TDD with baby steps for Go. Use when writing tests, doing TDD, practicing red-green-refactor, or when test cycles feel too large and risky. Also use when the user asks about incremental test development, test-first workflow, or wants help breaking a feature into small testable steps. Covers table-driven tests, testify, t.Run subtests, t.Helper, transformation priority premise, and incremental test progression."
 ---
 
 # Go TDD Baby Steps
