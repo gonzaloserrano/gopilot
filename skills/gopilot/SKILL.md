@@ -185,7 +185,7 @@ Benefits: single execution per `-count`, prevents compiler optimizations away.
 - `t.Context()` for test-scoped context (Go 1.24+)
 - `t.Chdir()` for temp directory changes (Go 1.24+)
 - `t.ArtifactDir()` for test output files (Go 1.26+)
-- `t.Parallel()` for independent tests
+- `t.Parallel()` for independent tests (works at both top-level tests and subtests within `t.Run`; top-level tests run sequentially by default, `t.Parallel()` opts them into concurrent execution)
 - `-race` flag always
 - Don't test stdlib; test YOUR code
 - Bug fix → add regression test first
