@@ -1,6 +1,6 @@
 ---
 name: gopilot
-description: "v1.0.27 — Go programming language skill for writing idiomatic Go code, code review, error handling, testing, concurrency, security, and program design. Use when writing, reviewing, debugging, or asking about Go code — even if the user doesn't explicitly mention 'Go best practices'. Also use when: reviewing Go PRs, debugging Go tests, fixing Go errors, designing Go APIs, implementing security-sensitive code, handling user input, authentication, sessions, cryptography, building resource-oriented gRPC APIs with Google AIP standards, configuring golangci-lint, setting up structured logging with slog, or any question about Go idioms and patterns. Covers table-driven tests, error wrapping, goroutine patterns, interface design, generics, iterators, stdlib patterns up to Go 1.26, OWASP security practices, and Google AIP (API Improvement Proposals) with einride/aip-go for pagination, filtering, ordering, field masks, and resource names."
+description: "v1.0.28 — Go programming language skill for writing idiomatic Go code, code review, error handling, testing, concurrency, security, and program design. Use when writing, reviewing, debugging, or asking about Go code — even if the user doesn't explicitly mention 'Go best practices'. Also use when: reviewing Go PRs, debugging Go tests, fixing Go errors, designing Go APIs, implementing security-sensitive code, handling user input, authentication, sessions, cryptography, building resource-oriented gRPC APIs with Google AIP standards, configuring golangci-lint, setting up structured logging with slog, or any question about Go idioms and patterns. Covers table-driven tests, error wrapping, goroutine patterns, interface design, generics, iterators, stdlib patterns up to Go 1.26, OWASP security practices, and Google AIP (API Improvement Proposals) with einride/aip-go for pagination, filtering, ordering, field masks, and resource names."
 ---
 
 # Go Engineering
@@ -173,6 +173,8 @@ Benefits: single execution per `-count`, prevents compiler optimizations away.
 
 ### Assertions
 - Use the testify library for conciseness. Use `require` for fatal assertions, `assert` for non-fatal
+- Prefer semantic helpers: `require.Zero`/`require.NotZero`, `require.Empty`/`require.NotEmpty`, `require.Nil`/`require.NotNil` over `require.Equal(t, 0, ...)`, `require.Equal(t, "", ...)`, etc.
+- Skip the message arg on `require.NoError`/`require.Error`: the error value and file:line trace already tell you what failed. Only add a message when multiple calls could produce the same ambiguous error
 - `require.ErrorIs` for sentinel errors (not string matching)
 - `require.JSONEq`/`require.YAMLEq` for semantic comparison
 - Use `testdata/` folders for expected values
@@ -182,7 +184,7 @@ Benefits: single execution per `-count`, prevents compiler optimizations away.
 - Test function names: use `TestFooBar` (PascalCase), not `TestFoo_Bar` (no underscores)
 - `t.Helper()` in helper functions
 - `t.Cleanup()` for resource cleanup
-- `t.Context()` for test-scoped context (Go 1.24+)
+- `t.Context()` for test-scoped context (Go 1.24+), never `context.Background()` in tests
 - `t.Chdir()` for temp directory changes (Go 1.24+)
 - `t.ArtifactDir()` for test output files (Go 1.26+)
 - `t.Parallel()` for independent tests (works at both top-level tests and subtests within `t.Run`; top-level tests run sequentially by default, `t.Parallel()` opts them into concurrent execution)
