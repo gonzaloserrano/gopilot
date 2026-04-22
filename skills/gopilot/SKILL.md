@@ -180,6 +180,21 @@ Benefits: single execution per `-count`, prevents compiler optimizations away.
 - Use `testdata/` folders for expected values
 - Use `embed.FS` for test data files
 
+### Test Doubles
+
+Hand-rolled fakes: embed the interface as an anonymous nil field and implement only the methods the test calls. Unimplemented methods panic, so unexpected code paths fail loudly instead of silently no-opping.
+
+```go
+type fakeObjectFile struct {
+    s3.ObjectFile // nil; Seek/Close/Stat panic if called
+    readErr error
+}
+
+func (f *fakeObjectFile) Read(p []byte) (int, error) { return 0, f.readErr }
+```
+
+Use for focused tests where only a method or two are exercised. Not for production (latent panic) or tests needing call-count/argument assertions — use `gomock` or `testify/mock` instead.
+
 ### Practices
 - Test function names: use `TestFooBar` (PascalCase), not `TestFoo_Bar` (no underscores)
 - `t.Helper()` in helper functions
