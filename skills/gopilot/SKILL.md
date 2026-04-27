@@ -6,6 +6,19 @@ license: MIT
 
 # Go Engineering
 
+## API Inspection
+
+Before guessing function signatures or fabricating package APIs, inspect the source:
+
+- `go doc fmt.Errorf` — package or symbol docs (stdlib + module deps)
+- `go doc -src strings.Cut` — show source
+- `go doc ./internal/foo` — local package
+- `gopls definition <file>:<line>:<col>` — jump to definition
+- `gopls references <file>:<line>:<col>` — find call sites
+- `gopls symbols <file>` — list package symbols
+
+Use these over inferring APIs. Hallucinated signatures fail at compile time; `go doc` is faster than the build-fail loop.
+
 ## Design Guidelines
 
 - Keep things simple.
