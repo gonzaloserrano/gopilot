@@ -1,6 +1,7 @@
 ---
 name: gopilot
-description: "v1.0.29 — Go programming language skill for writing idiomatic Go code, code review, error handling, testing, concurrency, security, and program design. Use when writing, reviewing, debugging, or asking about Go code — even if the user doesn't explicitly mention 'Go best practices'. Also use when: reviewing Go PRs, debugging Go tests, fixing Go errors, designing Go APIs, implementing security-sensitive code, handling user input, authentication, sessions, cryptography, building resource-oriented gRPC APIs with Google AIP standards, configuring golangci-lint, setting up structured logging with slog, or any question about Go idioms and patterns. Covers table-driven tests, error wrapping, goroutine patterns, interface design, generics, iterators, stdlib patterns up to Go 1.26, OWASP security practices, and Google AIP (API Improvement Proposals) with einride/aip-go for pagination, filtering, ordering, field masks, and resource names."
+description: "Go programming language skill for writing idiomatic Go code, code review, error handling, testing, concurrency, security, and program design. Use when writing, reviewing, debugging, or asking about Go code — even if the user doesn't explicitly mention 'Go best practices'. Also use when: reviewing Go PRs, debugging Go tests, fixing Go errors, designing Go APIs, implementing security-sensitive code, handling user input, authentication, sessions, cryptography, building resource-oriented gRPC APIs with Google AIP standards, configuring golangci-lint, setting up structured logging with slog, or any question about Go idioms and patterns. Covers table-driven tests, error wrapping, goroutine patterns, interface design, generics, iterators, stdlib patterns up to Go 1.26, OWASP security practices, and Google AIP (API Improvement Proposals) with einride/aip-go for pagination, filtering, ordering, field masks, and resource names."
+license: MIT
 ---
 
 # Go Engineering
@@ -24,9 +25,6 @@ description: "v1.0.29 — Go programming language skill for writing idiomatic Go
 
 ## Code Style
 
-- Avoid stuttering: `http.Client` not `http.HTTPClient`
-- Getters: `Foo()` not `GetFoo()`
-- Receiver: short (1-2 chars), consistent across type methods
 - `Must` prefix for panicking functions
 - Enums: use `iota + 1` to start at one, distinguishing intentional values from zero default
 
@@ -42,11 +40,8 @@ description: "v1.0.29 — Go programming language skill for writing idiomatic Go
   slog.ErrorContext(ctx, "fetch user", "user_id", userID, "error", err)
   return fmt.Errorf("fetch user: %w", err)
   ```
-- Sentinel errors: `var ErrNotFound = errors.New("not found")`
-- Check with `errors.Is(err, ErrNotFound)` or `errors.As(err, &target)`, or use generic `errors.AsType[T]` (Go 1.26+)
-- Static errors: prefer `errors.New` over `fmt.Errorf` without formatting
-- Join multiple errors: `err := errors.Join(err1, err2, err3)` (Go 1.20+)
-- Error strings: lowercase, no punctuation
+- Generic error matching: `errors.AsType[T]` (Go 1.26+) replaces the `var t *MyErr; errors.As(err, &t)` dance
+- Join multiple errors: `errors.Join(err1, err2, err3)` (Go 1.20+)
 - Avoid verb prefixes that accumulate through the stack: "failed to", "error", "could not", "unable to". Use bare context instead (`"connect: %w"` not `"failed to connect: %w"`, `"fetch config: %w"` not `"error fetching config: %w"`)
 - Always check errors immediately before using returned values — in Go 1.21–1.24, the compiler could reorder statements and execute method calls on nil receivers before the error check ran, causing panics (fixed in Go 1.25)
 
@@ -110,13 +105,11 @@ if cause := context.Cause(ctx); cause != nil {
 
 ## Generics
 
-- Type parameters: `func Min[T cmp.Ordered] (a, b T) T`
-- Use `comparable` for map keys, `cmp.Ordered` for sortable types
-- Custom constraints: `type Number interface { ~int | ~int64 | ~float64 }`
+- Constraints: `comparable` for map keys, `cmp.Ordered` for sortable types
+- Custom constraints with type sets: `type Number interface { ~int | ~int64 | ~float64 }`
 - Generic type alias (Go 1.24+): `type Set[T comparable] = map[T]struct{}`
 - Self-referential constraints (Go 1.26+): `type Adder[A Adder[A]] interface { Add(A) A }`
 - Prefer concrete types when generics add no value
-- Use `any` sparingly; prefer specific constraints
 
 ## Built-in Functions
 
@@ -145,7 +138,6 @@ Share memory by communicating -- channels orchestrate; mutexes serialize.
 | One-time init | `sync.Once` / `sync.OnceValue` | Race-free lazy init |
 | Deduplicate concurrent calls | `singleflight.Group` | Coalesces in-flight requests |
 
-- Use `errgroup.WithContext` to launch goroutines that return errors; `g.Wait()` returns first error
 - `sync.WaitGroup.Go()` (Go 1.25+): combines Add(1) + goroutine launch
   ```go
   var wg sync.WaitGroup
@@ -153,15 +145,10 @@ Share memory by communicating -- channels orchestrate; mutexes serialize.
   wg.Wait()
   ```
 - Make goroutine lifetime explicit; document when/why they exit
-- Avoid goroutine leaks (blocked on unreachable channels); detect with `GOEXPERIMENT=goroutineleakprofile` (Go 1.26+)
-- Use `context.Context` for cancellation; subscribe to `context.Done()` for graceful shutdown
+- Detect leaks with `GOEXPERIMENT=goroutineleakprofile` (Go 1.26+)
 - Prefer synchronous functions; let callers add concurrency if needed
-- `sync.Mutex`/`RWMutex` for shared state protection; zero value is ready to use
-- `RWMutex` when reads far outnumber writes
-- Pointer receivers with mutexes (prevents struct copy which breaks lock semantics)
-- Keep critical sections small; avoid holding locks across I/O
-- `sync.Once` for one-time initialization; helpers: `sync.OnceFunc()`, `sync.OnceValue()`, `sync.OnceValues()` (Go 1.21+)
-- `atomic` for primitive counters (simpler than mutex for single values)
+- `sync.Once` helpers: `sync.OnceFunc()`, `sync.OnceValue()`, `sync.OnceValues()` (Go 1.21+)
+- Pointer receivers with mutexes (struct copy breaks lock semantics)
 - Don't embed mutex (exposes Lock/Unlock to callers); use a named field instead
 - Prevent copying of structs with mutexes or goroutine state using `noCopy`:
   ```go
@@ -236,7 +223,7 @@ func (s *Set[T]) All() iter.Seq[T] {
 - Define interfaces at the consumer, not the provider; keep them small (1-2 methods)
 - Compile-time interface check: `var _ http.Handler = (*MyHandler)(nil)`
 - For single-method dependencies, use function types instead of interfaces
-- Don't embed types in exported structs—exposes methods and breaks API compatibility
+- Don't embed types in exported structs (exposes methods and breaks API compatibility)
 
 ## Slice & Map Patterns
 
@@ -244,7 +231,6 @@ func (s *Set[T]) All() iter.Seq[T] {
 - Nil vs empty: `var t []string` (nil, JSON null) vs `t := []string{}` (non-nil, JSON `[]`)
 - Copy at boundaries with `slices.Clone(items)` to prevent external mutations
 - Prefer `strings.Cut(s, "/")` over `strings.Split` for prefix/suffix extraction
-- Append handles nil: `var items []Item; items = append(items, newItem)`
 
 ## Common Patterns
 
@@ -255,28 +241,11 @@ Define `type Option func(*Config)`. Create `WithX` functions returning `Option` 
 Use `cmp.Or(a, b, c)` to return first non-zero value—e.g., `cmp.Or(cfg.Port, envPort, 8080)`.
 
 ### Context Usage
-- First parameter: `func Foo(ctx context.Context, ...)`
-- Don't store in structs
-- Use for cancellation, deadlines, request-scoped values only
-- `context.WithoutCancel(ctx)` (Go 1.21+): derive a context that keeps values but ignores parent cancellation -- use for background work that must outlive the request (e.g., async cleanup, audit logging)
+- `context.WithoutCancel(ctx)` (Go 1.21+): derive a context that keeps values but ignores parent cancellation. Use for background work that must outlive the request (async cleanup, audit logging)
 
 ### HTTP Best Practices
 - Use `http.Server{}` with explicit `ReadTimeout`/`WriteTimeout`; avoid `http.ListenAndServe`
-- Always `defer resp.Body.Close()` after checking error
-- Accept `*http.Client` as dependency for testability
-
-### HTTP Routing (Go 1.22+)
-```go
-// Method-based routing with path patterns
-mux.HandleFunc("POST /items/create", createHandler)
-mux.HandleFunc("GET /items/{id}", getHandler)
-mux.HandleFunc("GET /files/{path...}", serveFiles)  // Greedy wildcard
-
-// Extract path values
-func getHandler(w http.ResponseWriter, r *http.Request) {
-    id := r.PathValue("id")
-}
-```
+- Method-based routing (Go 1.22+): `mux.HandleFunc("GET /items/{id}", h)`, extract via `r.PathValue("id")`. Greedy wildcard: `{path...}`
 
 ### AIP: Resource-Oriented gRPC APIs
 
@@ -289,9 +258,8 @@ For building resource-oriented gRPC APIs following [Google AIP](https://google.a
 
 ## Structured Logging (log/slog)
 
-- Use `slog.Info("msg", "key", value, "key2", value2)` with key-value pairs
-- Add persistent attributes: `logger := slog.With("service", "api")`
-- JSON output: `slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))`
+- JSON handler for production: `slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))`
+- `slog.ErrorContext(ctx, ...)` over `slog.Error(...)` so handler-bound trace/request IDs propagate
 
 ## Common Gotchas
 
@@ -337,24 +305,9 @@ b = append(b, 99)    // a is unchanged
 
 Use `slices.Clone` / `maps.Clone` for shallow copies at API boundaries.
 
-- **Check errors immediately** (Go 1.25 fixed compiler bug): always check `err != nil` before using any returned values
-  ```go
-  // WRONG: could execute f.Name() before err check in Go 1.21-1.24
-  f, err := os.Open("file")
-  name := f.Name()
-  if err != nil { return }
-
-  // CORRECT: check immediately
-  f, err := os.Open("file")
-  if err != nil { return }
-  name := f.Name()
-  ```
-- `time.Ticker`: always call `Stop()` to prevent leaks
-- Slices hold refs to backing arrays (can retain large memory)
-- `nil` interface vs `nil` concrete: `var err error = (*MyError)(nil)` → `err != nil` is true
+- `nil` interface vs `nil` concrete: `var err error = (*MyError)(nil)` → `err != nil` is true (typed nil)
 - Loop variables: each iteration has own copy (Go 1.22+); older versions share
 - Timer/Ticker channels: capacity 0 (Go 1.23+); previously capacity 1
-- `init()` is an anti-pattern; prefer explicit initialization
 
 ## Linting
 

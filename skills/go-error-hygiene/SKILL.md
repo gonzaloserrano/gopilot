@@ -1,6 +1,7 @@
 ---
 name: go-error-hygiene
-description: "v1.0.29 -- Detect and fix Go error handling antipatterns across a codebase. Use when auditing error handling, fixing double-handled errors, removing log-and-return patterns, cleaning up log-and-wrap helpers, or when the user asks to analyze error handling hygiene, find error handling violations, or ensure errors are handled exactly once. Covers detection patterns, classification of true vs false positives, fix strategies for interior vs boundary code, and verification steps."
+description: "Detect and fix Go error handling antipatterns across a codebase. Use when auditing error handling, fixing double-handled errors, removing log-and-return patterns, cleaning up log-and-wrap helpers, or when the user asks to analyze error handling hygiene, find error handling violations, or ensure errors are handled exactly once. Covers detection patterns, classification of true vs false positives, fix strategies for interior vs boundary code, and verification steps."
+license: MIT
 ---
 
 # Go Error Hygiene
