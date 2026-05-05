@@ -46,9 +46,9 @@ func BenchmarkFoo(b *testing.B) {
 Benefits: single execution per `-count`, prevents compiler optimizations away.
 
 ## Assertions
-- Use the testify library for conciseness. Use `require` for fatal assertions, `assert` for non-fatal
+- Use the testify library for conciseness. Default to `require`. Reach for `assert` only when later checks are genuinely independent of this one. That is rare in practice, since most assertions feed dereferences, indexing, or method calls that would panic or produce noisy second failures on broken state. Guard pointer/slice access with `require.NotNil` / `require.Len` first.
 - Prefer semantic helpers: `require.Zero`/`require.NotZero`, `require.Empty`/`require.NotEmpty`, `require.Nil`/`require.NotNil` over `require.Equal(t, 0, ...)`, `require.Equal(t, "", ...)`, etc.
-- Skip the message arg on `require.NoError`/`require.Error`: the error value and file:line trace already tell you what failed. Only add a message when multiple calls could produce the same ambiguous error
+- Skip the trailing message arg by default on every testify assertion (`Equal`, `Empty`, `True`, `Contains`, `Len`, `NoError`, `Error`, ...). The assertion semantics plus the printed values plus the file:line trace already tell you what failed; the string rots when the test changes. Add a message only when the same assertion fires multiple times in one test or the failure mode is genuinely ambiguous.
 - `require.ErrorIs` for sentinel errors (not string matching)
 - `require.JSONEq`/`require.YAMLEq` for semantic comparison
 - Use `testdata/` folders for expected values
