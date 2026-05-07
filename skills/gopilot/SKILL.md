@@ -58,13 +58,14 @@ Use these over inferring APIs. Hallucinated signatures fail at compile time; `go
 ## Error Handling
 
 - Errors are values. Design APIs around that.
-- Wrap with context: `fmt.Errorf("get config: %w", err)` -- use low-cardinality strings only (no IDs, names, or variable data in the format string; attach those as structured slog attributes so APM tools can group errors)
+- Wrap with context using low-cardinality strings: `fmt.Errorf("get config: %w", err)` rather than `fmt.Errorf("get config from %s: %w", path, err)`. APM tools that group by message text can collapse the same root cause across instances; high-cardinality wraps fragment the dashboard.
+- Variable data (IDs, names, paths) belongs in the structured log record at the **application boundary** (HTTP middleware, gRPC interceptor, top-level main), not at the wrap site. Intermediate layers wrap and return; the boundary observes the full chain and logs once with `slog.Error(..., "user_id", id, "error", err)`.
+- Caveat: if no boundary in your service preserves the variable as a structured field, embedding it in the wrap is the lesser evil — losing the data is worse than losing APM grouping. Treat low-cardinality as an optimization, not a correctness rule. Audit for `zap.String("user_id", id)` / `slog.Error(... "user_id", id ...)` near the call boundary before stripping the variable from a wrap.
   ```go
   // Bad: high-cardinality error string -- APM sees each user as a unique error
   return fmt.Errorf("fetch user %s: %w", userID, err)
 
-  // Good: stable error string + structured context
-  slog.ErrorContext(ctx, "fetch user", "user_id", userID, "error", err)
+  // Good: stable wrap; the boundary handler logs user_id structurally
   return fmt.Errorf("fetch user: %w", err)
   ```
 - Generic error matching: `errors.AsType[T]` (Go 1.26+) replaces the `var t *MyErr; errors.As(err, &t)` dance
@@ -108,13 +109,13 @@ if err != nil {
     return fmt.Errorf("connect: %w", err)
 }
 
-// Good: wrap and return; let the top-level caller log
+// Good: wrap (low-cardinality) and return; the boundary logs once
 if err != nil {
-    return fmt.Errorf("connect to %s: %w", addr, err)
+    return fmt.Errorf("connect: %w", err)
 }
 ```
 
-Wrap with context at each layer; log/handle only at the application boundary.
+Wrap with context at each layer; log/handle only at the application boundary. The boundary picks up variable data (`addr`, `user_id`, etc.) from `ctx`-scoped log fields or from a structured `slog.Error` call there — not from each wrap site.
 
 ### Context with Cause (Go 1.21+)
 
