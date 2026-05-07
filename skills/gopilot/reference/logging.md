@@ -33,6 +33,25 @@
 - Personal identifiable information (PII)
 - Any sensitive authentication data
 
+## Bind shared fields once with `Logger.With(...)`
+
+When two or more log calls in a function share correlation fields
+(`request_id`, `user_id`, etc.), bind them on a child logger instead of
+repeating the field list per call.
+
+```go
+log := slog.With(
+    "request_id", reqID,
+    "user_id", userID,
+)
+log.Warn("request validation rejected", "error", err)
+log.Error("request persistence failed", "error", err)
+log.Info("request processed")
+```
+
+Skip for a single call, when fields differ between calls, or when the shared
+set is one field.
+
 ## Structured Logging with slog
 
 ```go
