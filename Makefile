@@ -15,4 +15,5 @@ bump:
 	echo "Bumped version: $$current -> $$new_version"
 
 check:
+	./scripts/check-references-indexed.sh
 	npx skill-check .
