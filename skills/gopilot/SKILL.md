@@ -6,6 +6,20 @@ license: MIT
 
 # Go Engineering
 
+## Reference files
+
+This SKILL.md is a SUMMARY. The files under `reference/` carry stricter rules
+NOT all reproduced here. If your task touches a topic below, the reference is
+required reading — don't trust the abbreviated version on this page.
+
+- `reference/go-testing.md` — table-driven tests, testify, subtests, helpers
+- `reference/go-aip.md` — Google AIP and einride/aip-go for resource-oriented gRPC
+- `reference/error-handling.md` — security-sensitive error patterns
+- `reference/logging.md` — structured `slog`, secret redaction, correlation IDs
+- `reference/linting.md` — golangci-lint configuration
+- `reference/security-checklist.md` — OWASP Go pre-deploy checklist
+- `reference/access-control.md`, `reference/authentication.md`, `reference/cryptography.md`, `reference/csrf.md`, `reference/database-security.md`, `reference/file-security.md`, `reference/input-validation.md`, `reference/session-management.md`, `reference/tls-https.md`, `reference/xss.md` — security topics (OWASP)
+
 ## API Inspection
 
 Before guessing function signatures or fabricating package APIs, inspect the source:
