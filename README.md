@@ -36,7 +36,7 @@ A Claude Code plugin with production-tested Go patterns covering idiomatic code 
 | **AIP** | Resource-oriented gRPC APIs with einride/aip-go: pagination, filtering, ordering, field masks, resource names |
 | **Patterns** | Options pattern, `cmp.Or`, HTTP best practices, slog |
 | **Security** | Input validation, SQL injection, auth, sessions, TLS, CSRF, crypto |
-| **Linting** | golangci-lint configuration, recommended linters, auto-fix |
+| **Linting** | golangci-lint configuration, recommended linters, auto-fix, custom linters (module plugins) |
 | **TDD Baby Steps** | Red-green-refactor, table-driven test progression, `t.Run`, `t.Helper` |
 
 ## Go Version Support

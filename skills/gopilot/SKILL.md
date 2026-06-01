@@ -339,7 +339,7 @@ Use `slices.Clone` / `maps.Clone` for shallow copies at API boundaries.
 
 ## Linting
 
-Use `golangci-lint` with recommended linters: errcheck, govet, staticcheck, gocritic, gofumpt, wrapcheck, errorlint. See [linting reference](reference/linting.md) for the full `.golangci.yml` config template and commands.
+Use `golangci-lint` with recommended linters: errcheck, govet, staticcheck, gocritic, gofumpt, wrapcheck, errorlint. See [linting reference](reference/linting.md) for the full `.golangci.yml` config template and commands. Projects with custom/private linters build a dedicated binary via the module plugin system (`.custom-gcl.yml` → `golangci-lint custom`) and must run that binary, not the one on PATH — see the same reference.
 
 ## Pre-Commit
 
