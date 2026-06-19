@@ -38,6 +38,7 @@ A Claude Code plugin with production-tested Go patterns covering idiomatic code 
 | **Security** | Input validation, SQL injection, auth, sessions, TLS, CSRF, crypto |
 | **Linting** | golangci-lint configuration, recommended linters, auto-fix, custom linters (module plugins) |
 | **TDD Baby Steps** | Red-green-refactor, table-driven test progression, `t.Run`, `t.Helper` |
+| **Code Review** | Multi-lane fan-out review (correctness, silent failures, test gaps, comment drift, structure) + a Go-rubric chain that loads the gopilot skills, reduced to one severity-tagged finding list |
 
 ## Go Version Support
 
